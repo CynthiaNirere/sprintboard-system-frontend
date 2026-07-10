@@ -5,6 +5,7 @@ import UserServices from '../services/UserServices.js'
 const props = defineProps(['ticket']);
 const ticket = ref(props.ticket);
 const owner = ref();
+const user = ref(null);
 
 const isModalOpened = ref(false);
 
@@ -20,8 +21,8 @@ const submitHandler = ()=>{
 }
 
 onMounted(async () => {
-  await getOwner();
   user.value = JSON.parse(localStorage.getItem("user"));
+  await getOwner();
 });
 
 async function getOwner() {
@@ -32,9 +33,7 @@ async function getOwner() {
     })
     .catch((error) => {
       console.log(error);
-      snackbar.value.value = true;
-      snackbar.value.color = "error";
-      snackbar.value.text = error.response?.data?.message || "Error loading owner for " + ticket.id;
+      
     });
 }
 
@@ -49,8 +48,8 @@ async function getOwner() {
       {{ ticket.title }}
     </v-card-text>
     <div class="d-flex pb-1">
-      <v-card-subtitle v-if="owner?.email">
-        {{ owner.email }}
+      <v-card-subtitle >
+        {{ owner?.email ?? "fake@example.com" }}
       </v-card-subtitle>
       <span class="ml-auto mr-5">{{ ticket.storyPoints }}</span>
     </div>

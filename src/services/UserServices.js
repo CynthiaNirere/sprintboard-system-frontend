@@ -4,6 +4,9 @@ export default {
   getUser() {
     return apiClient.get("users");
   },
+  getUserById(userId){
+    return apiClient.get("users/"+userId);
+  },
   addUser(user) {
     return apiClient.post("users", user);
   },

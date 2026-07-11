@@ -1,7 +1,8 @@
 <script setup>
 import { onMounted, ref } from "vue";
 import EventServices from "../services/EventServices.js";
-
+import Ticket from "../components/Ticket.vue";
+import TicketModal from "../components/TicketModal.vue";
 const events = ref([]);
 const user = ref(null);
 const snackbar = ref({
@@ -9,13 +10,36 @@ const snackbar = ref({
   color: "",
   text: "",
 });
+const ticket = {};
+ticket.title = "title";
+ticket.id = "BDE3";
+ticket.assigneeId = 1;
+ticket.storyPoints = 5;
+ticket.status = "inProgress";
+const ticket2 = {};
+ticket2.title = "asdf";
+ticket2.id = "BDE3";
+ticket2.assigneeId = 2;
+ticket2.storyPoints = 5;
+ticket2.status = "inProgress";
+
+
+
+const currentTicket = ref();
+const isModalOpen = ref(false);
+
+const openModal = (ticket) => {
+  currentTicket.value = ticket;
+  console.log(currentTicket.value);
+  isModalOpen.value = true;
+};
 
 onMounted(async () => {
   await getEvents();
   user.value = JSON.parse(localStorage.getItem("user"));
 });
 
-async function getEvents() {
+async function getTickets() {
   await EventServices.getEvents()
     .then((response) => {
       events.value = Array.isArray(response.data) 
@@ -111,9 +135,10 @@ function getEventLength(event) {
         </v-card>
       </div>
 
-      <v-card v-if="events.length === 0" class="my-5 elevation-2" variant="outlined">
-        <v-card-text>No upcoming events at this time.</v-card-text>
-      </v-card>
+      <div v-if="events.length === 0" class="d-flex " >
+        <Ticket @click="openModal(ticket)" :ticket="ticket"/>
+        <Ticket @click="openModal(ticket2)" :ticket="ticket2"/>
+      </div>
     </div>
 
     <v-snackbar v-model="snackbar.value" rounded="pill">
@@ -124,5 +149,8 @@ function getEventLength(event) {
         </v-btn>
       </template>
     </v-snackbar>
+
+    <ticket-modal  :is-open="isModalOpen" :ticket="currentTicket" @modal-close="isModalOpen = false"/>
+
   </v-container>
 </template>

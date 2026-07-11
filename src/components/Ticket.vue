@@ -26,7 +26,7 @@ onMounted(async () => {
 });
 
 async function getOwner() {
-  await UserServices.getUseById(ticket.value.assigneeId)
+  await UserServices.getUserById(ticket.value.assigneeId)
     .then((response) => {
       owner.value = response.data;
       console.log(owner.value.email);

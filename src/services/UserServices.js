@@ -4,7 +4,7 @@ export default {
   getUser() {
     return apiClient.get("users");
   },
-  getUseById(userId){
+  getUserById(userId){
     return apiClient.get("users/"+userId);
   },
   addUser(user) {

@@ -1,19 +1,3 @@
-<!-- <script setup>
-import { ref } from 'vue'
-const props = defineProps(['ticket', "show"]);
-const ticket = ref(props.ticket);
-const show = ref(props.show);
-
-
-</script>
-
-<template>
-  <v-modal v-if="show">
-
-  </v-modal>
-  
-</template> -->
-
 <script setup>
 import { defineProps, defineEmits, ref } from "vue";
 import {onClickOutside} from '@vueuse/core'

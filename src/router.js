@@ -54,9 +54,44 @@ const router = createRouter({
       component: () => import("./views/Ticket.vue"),
     },
     {
+      path: "/admin",
+      name: "adminLayout",
+      component: () => import("./components/AdminLayout.vue"),
+    },
+    {
+      path: "/admin/overview",
+      name: "overview",
+      component: () => import("./views/Overview.vue"),
+    },
+    {
       path: "/admin/dashboard",
       name: "adminDashboard",
       component: () => import("./views/AdminDashboard.vue"),
+    },
+    {
+      path: "/admin/projects",
+      name: "projects",
+      component: () => import("./views/Projects.vue"),
+    },
+    {
+      path: "/admin/sprints",
+      name: "activeSprints",
+      component: () => import("./views/ActiveSprints.vue"),
+    },
+    {
+      path: "/admin/team",
+      name: "teamManagement",
+      component: () => import("./views/TeamManagement.vue"),
+    },
+    {
+      path: "/admin/github",
+      name: "githubIntegrations",
+      component: () => import("./views/GithubIntegrations.vue"),
+    },
+    {
+      path: "/admin/settings",
+      name: "globalSettings",
+      component: () => import("./views/GlobalSettings.vue"),
     },
     {
       path: "/shows/:id/events/:eventId/seatmap",

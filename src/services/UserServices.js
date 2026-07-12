@@ -17,7 +17,6 @@ export default {
     return apiClient.delete("users/"+user);
   },
   loginUser(user) {
-    console.log(user);
     return apiClient.post("login", user.value, {
       headers: {
         Accept: "application/json",

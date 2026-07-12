@@ -23,11 +23,13 @@ const snackbar = ref({
 });
 
 const user = ref({
+  username: "",
   firstName: "",
   lastName: "",
   email: "",
-  phoneNumber: "",
   password: "",
+  globalRole: "",
+  githubAccount: ""
 });
 
 const accountPasswords = ref({
@@ -95,9 +97,9 @@ async function login() {
       snackbar.value.value = true;
       snackbar.value.color = "green";
       snackbar.value.text = "Login successful!";
-      console.log("userType:", data.data.userType)
-      if (data.data.userType === "admin") {
-        router.push({ name: "adminDashboard" }).catch(err => console.log("Nav error:", err));;
+      console.log("userType:", data.data.globalRole);
+      if (data.data.globalRole === "ADMIN") {
+        router.push({ name: "adminLayout" }).catch(err => console.log("Nav error:", err));;
       } 
       else {router.push({ name: "home" });}
     })

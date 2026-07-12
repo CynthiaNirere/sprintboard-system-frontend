@@ -12,6 +12,10 @@ const isCreating = ref(false);
 const form = ref(null);
 const newProject = ref({ name: "", description: "" });
 
+const showDeleteDialog = ref(false);
+const projectToDelete = ref(null);
+const isDeleting = ref(false);
+
 const nameRules = [(v) => !!v || "Project name is required"];
 
 const user = JSON.parse(localStorage.getItem("user"));
@@ -69,6 +73,33 @@ function statusFlow(project) {
   return statuses.map((s) => s.name).join(" → ");
 }
 
+function confirmDelete(project) {
+  projectToDelete.value = project;
+  showDeleteDialog.value = true;
+}
+
+async function deleteProject() {
+  isDeleting.value = true;
+  await ProjectServices.deleteProject(projectToDelete.value.id)
+    .then(() => {
+      showDeleteDialog.value = false;
+      snackbar.value.value = true;
+      snackbar.value.color = "success";
+      snackbar.value.text = `"${projectToDelete.value.name}" was deleted.`;
+      projectToDelete.value = null;
+      getProjects();
+    })
+    .catch((error) => {
+      snackbar.value.value = true;
+      snackbar.value.color = "error";
+      snackbar.value.text =
+        error.response?.data?.message || "Error deleting project.";
+    })
+    .finally(() => {
+      isDeleting.value = false;
+    });
+}
+
 function openProject(id) {
   router.push({ name: "project", params: { id: id } });
 }
@@ -102,7 +133,17 @@ function openProject(id) {
             >
               Open
             </v-btn>
+            <v-btn
+                v-if="isAdmin"
+                icon="mdi-delete-outline"
+                variant="text"
+                color="error"
+                size="small"
+                @click.stop="confirmDelete(project)"
+                ></v-btn>
+             
           </div>
+          
 
           <p class="text-body-2 text-medium-emphasis mt-2">
             {{ project.description || "No description" }}
@@ -113,17 +154,18 @@ function openProject(id) {
             {{ statusFlow(project) }}
           </p>
 
-          <v-chip
-            v-if="project.githubRepository"
-            size="small"
-            prepend-icon="mdi-source-repository"
-            class="mt-2"
-          >
-            {{ project.githubRepository.repoName }}
-          </v-chip>
-          <p v-else class="text-caption text-medium-emphasis mt-2">
-            No repos linked — manage in GitHub Integrations
-          </p>
+        <v-chip
+        v-for="repo in project.projectRepositories"
+        :key="repo.id"
+        size="small"
+        prepend-icon="mdi-source-repository"
+        class="mt-2 mr-2"
+        >
+        {{ repo.name }}
+        </v-chip>
+        <p v-if="!project.projectRepositories?.length" class="text-caption text-medium-emphasis mt-2">
+        No repos linked — manage in GitHub Integrations
+        </p>
 
           <v-row class="mt-2">
             <v-col cols="4">
@@ -206,7 +248,30 @@ function openProject(id) {
         </v-card-actions>
       </v-card>
     </v-dialog>
-
+        <v-dialog v-model="showDeleteDialog" max-width="440">
+        <v-card class="rounded-lg pa-2">
+            <v-card-title class="text-h6 font-weight-bold">
+            Delete project?
+            </v-card-title>
+            <v-card-text>
+            This will permanently delete
+            <strong>{{ projectToDelete?.name }}</strong> and all of its sprints.
+            This cannot be undone.
+            </v-card-text>
+            <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn variant="text" @click="showDeleteDialog = false">Cancel</v-btn>
+            <v-btn
+                color="error"
+                variant="flat"
+                :loading="isDeleting"
+                @click="deleteProject"
+            >
+                Delete
+            </v-btn>
+            </v-card-actions>
+        </v-card>
+        </v-dialog>
     <v-snackbar v-model="snackbar.value" rounded="pill">
       {{ snackbar.text }}
       <template v-slot:actions>

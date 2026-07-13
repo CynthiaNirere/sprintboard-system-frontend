@@ -6,7 +6,7 @@ import UserServices from "../services/UserServices";
 
 const router = useRouter();
 const user = ref(null);
-const title = ref("Planetarium");
+const title = ref("SprintBoard");
 const logoURL = ref("");
 const ready = ref(false);
 

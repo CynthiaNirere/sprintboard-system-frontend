@@ -1,4 +1,4 @@
-<!-- <script setup>
+<script setup>
 import { ref, onMounted } from "vue";
 //import { useRouter } from "vue-router";
 import DashboardServices from "../services/dashboardServices.js";
@@ -90,12 +90,4 @@ async function getStats() {
       </template>
     </v-snackbar>
   </v-container>
-</template> -->
-
-<script>
-import AdminLayout from '../components/AdminLayout.vue';
-</script>
-
-<template>
-
 </template>

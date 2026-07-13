@@ -2,8 +2,13 @@
 import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
 import UserServices from "../services/UserServices";
+import ocLogo from "/oc_logo.png";
 
 const user = ref(null);
+const router = useRouter();
+const logoURL = ref("");
+const title = ref("SprintBoard");
+const sidebarHeader = ref('sidebar-header')
 const logoutButton = ref('logout-button');
 const avatarOutline = ref('avatar-outline');
 const selectedProject = ref("Test Project");
@@ -17,8 +22,11 @@ const sessionExpirationTime = computed(() => {
     minute: '2-digit'
   });
 });
+const props = defineProps(['projects', 'selectedProject']);
+const emit = defineEmits(['update:selectedProject']);
 
 onMounted(async () => {
+  logoURL.value = ocLogo;
   user.value = JSON.parse(localStorage.getItem("user"));
 });
 
@@ -39,20 +47,27 @@ function logout() {
 <template>
   <v-navigation-drawer permanent>
     <div class="d-flex flex-column fill-height">
-      <v-list-item>
-        <div class="d-flex mt-4 ga-3 align-center">
-          <div id="sprintly-background" class="d-flex justify-center align-center">
-            <v-icon size="18" color="white">mdi-rocket-launch-outline</v-icon>
-          </div>
-          <span style="font-weight: 500;">Sprintly</span>
-        </div>
-      </v-list-item>
-  
+      <div :class="sidebarHeader" class="d-flex ga-4 px-4 align-center">
+        <router-link :to="{ name: user?.userType === 'admin' ? 'adminDashboard' : 'overview' }">
+          <v-img
+            class="mx-2"
+            :src="logoURL"
+            height="50"
+            width="50"
+            contain
+          ></v-img>
+        </router-link>
+        <h3 class="text-white font-weight-bold">{{ title }}</h3>
+      </div>
+
       <div id="workingIn">Working In</div>
       <v-select
-        v-model="selectedProject"
+        :model-value="selectedProject"
+        @update:model-value="val => emit('update:selectedProject', val)"
         class="mx-5 mt-2 flex-grow-0"
-        :items="['Test Project', 'Mobile App Redesign']"
+        :items="projects"
+        item-title="name"
+        return-object
         color="#2E4DC9"
         bg-color="#DEE6FA"
         rounded="lg"
@@ -64,50 +79,43 @@ function logout() {
         </template>
       </v-select>
   
-
       <div id="navLinks" class="d-flex ga-2 flex-column">
-        <v-list-item>
+        <v-list-item :to="{ name: 'overview'}">
           <div class="d-flex ga-3">
             <v-icon>mdi-view-dashboard-outline</v-icon>
             <span>Overview</span>
           </div>
         </v-list-item>
-  
         <v-list-item>
           <div class="d-flex ga-3">
             <v-icon>mdi-folder-open-outline</v-icon>
             <span>Projects</span>
           </div>
         </v-list-item>
-  
           <v-list-item>
           <div class="d-flex ga-3">
             <v-icon>mdi-rocket-launch-outline</v-icon>
             <span>Active Sprints</span>
           </div>
         </v-list-item>
-  
-          <v-list-item>
+        <v-list-item>
           <div class="d-flex ga-3">
             <v-icon>mdi-account-multiple-outline</v-icon>
             <span>Team Management</span>
           </div>
         </v-list-item>
-  
         <v-list-item>
           <div class="d-flex ga-3">
             <v-icon>mdi-github</v-icon>
             <span>GitHub Integrations</span>
           </div>
         </v-list-item>
-  
         <v-list-item>
           <div class="d-flex ga-3">
             <v-icon>mdi-cog-outline</v-icon>
             <span>Global Settings</span>
           </div>
         </v-list-item>
-  
         <v-list-item>
           <div class="d-flex ga-3">
             <v-icon>mdi-account-outline</v-icon>
@@ -119,7 +127,7 @@ function logout() {
       <div id="userProfile" class="mt-auto">
         <div class="d-flex flex-column mt-4 mx-4 ga-2">
 
-          <div id="userInfo" class="d-flex ga-4">
+          <div id="userInfo" class="d-flex ga-4 align-center">
             <div id="userInitials">
               <v-avatar :class="avatarOutline" class="mx-auto text-center" color="#1740E3" size="small">
                 <span class="white--text font-weight-bold">{{
@@ -157,12 +165,10 @@ function logout() {
 </template>
 
 <style scoped>
-#sprintly-background {
-  background-color: rgb(15, 15, 15);
-  border-radius: 25%;
-  width: 30px;
-  height: 30px;
-  padding: 16px;
+.sidebar-header {
+  background-color: #80162B;
+  width: 100%;
+  height: 4rem;
 }
 
 #workingIn {
@@ -197,5 +203,11 @@ function logout() {
   text-transform: capitalize;
   border: 1px solid rgb(211, 205, 205);
   border-radius: 8px;
+}
+
+.v-list-item:active {
+  background-color: #DEE6FA;
+  color: #2E4DC9;
+  border-radius: 6px;
 }
 </style>

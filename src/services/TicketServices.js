@@ -2,25 +2,28 @@ import apiClient from "./services";
 
 export default {
   getTickets() {
-    return apiClient.get("tickets");
+    return apiClient.get("ticket");
   },
   getTicket(id) {
-    return apiClient.get("tickets/" + id);
+    return apiClient.get("ticket/" + id);
   },
-  getTicketsForUser(userId) {
-    return apiClient.get("tickets/user/" + userId);
+  getTicketsForProject(projectId) {
+    return apiClient.get("ticket/project/" + projectId);
+  },
+  getTicketsForSprint(sprintId) {
+    return apiClient.get("ticket/sprint/" + sprintId);
   },
   addTicket(ticket) {
-    return apiClient.post("tickets", ticket);
+    return apiClient.post("ticket", ticket);
   },
   updateTicket(ticketId, ticket) {
-    return apiClient.put("tickets/" + ticketId, ticket);
+    return apiClient.put("ticket/" + ticketId, ticket);
   },
   deleteTicket(ticketId) {
-    return apiClient.delete("tickets/" + ticketId);
+    return apiClient.delete("ticket/" + ticketId);
   },
 
   adminRefundTicket(ticketId, refundAmount) {
-    return apiClient.delete("tickets/" + ticketId + "/refund", { data: { refundAmount } });
+    return apiClient.delete("ticket/" + ticketId + "/refund", { data: { refundAmount } });
   },
 };

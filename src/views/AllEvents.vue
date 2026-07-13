@@ -54,7 +54,7 @@ function openSeatMap(selectedEvent) {
 
 <template>
   <v-container>
-    <v-btn variant="text" prepend-icon="mdi-arrow-left" :to="{ name: 'home' }" class="mb-4">
+    <v-btn variant="text" prepend-icon="mdi-arrow-left" :to="{ name: 'storyboard' }" class="mb-4">
   Back to Home
 </v-btn>
     <div id="body">

@@ -1,8 +1,6 @@
 <script setup>
-import AdminHeader from "./AdminHeader.vue";
 import AdminSidebar from "./AdminSidebar.vue";
-
-console.log("reached this point")
+import MenuBar from "../components/MenuBar.vue";
 </script>
 
 <template>
@@ -10,7 +8,7 @@ console.log("reached this point")
     <AdminSidebar />
     <div id="main-content">
       <div class="d-flex flex-column">
-        <AdminHeader />
+        <MenuBar />
         <router-view />
       </div>
     </div>

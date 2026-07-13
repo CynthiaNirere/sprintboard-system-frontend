@@ -35,7 +35,6 @@ function logout() {
       <v-btn v-if="user === null" class="mx-2 ml-auto justify-end" @click="router.push({ name: 'login' })">
         Login
       </v-btn>
-
       <v-menu v-if="user !== null" min-width="200px" rounded>
         <template v-slot:activator="{ props }">
           <div class="ml-auto justify-end mr-6">
@@ -48,7 +47,6 @@ function logout() {
                   {{ user.globalRole }}
                 </div>
               </div>
-
               <v-btn icon v-bind="props">
                 <v-avatar :class="avatarOutline" class="mx-auto text-center" color="#1740E3" size="small">
                   <span class="white--text font-weight-bold">{{

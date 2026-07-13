@@ -3,15 +3,10 @@ import { onMounted, ref, watch } from "vue";
 import AdminSidebar from "./AdminSidebar.vue";
 import MenuBar from "../components/MenuBar.vue";
 import projectServices from "../services/projectServices.js";
-import sprintServices from "../services/sprintServices.js";
 
 const user = ref(null);
 const projects = ref([]);
 const currentProject = ref(null);
-const sprints = ref([]);
-const currentSprint = ref([]);
-const props = defineProps(['projects', 'selectedProject']);
-const emit = defineEmits(['update:selectedProject']);
 
 const snackbar = ref({
   value: false,
@@ -40,29 +35,6 @@ async function getAllProjects() {
       snackbar.value.text = error.response?.data?.message || "Error loading projects";
     });
 }
-
-watch(currentProject, async (newProject) => {
-  if (!newProject) {
-    return;
-  }
-  await sprintServices.getSprintsByProject(newProject.id)
-    .then((response) => {
-      sprints.value = response.data;
-      if (sprints.value.length > 0) {
-        const activeSprint = sprints.value.find(s => s.isActive);
-        currentSprint.value = activeSprint ? activeSprint.id : sprints.value[0].id;
-      }
-    })
-    .catch((error) => {
-      console.log(error);
-      sprints.value = [];
-      currentSprint.value = [];
-      snackbar.value.value = true;
-      snackbar.value.color = "error";
-      snackbar.value.text = error.response?.data?.message || "Error loading sprints";
-    });
-} )
-
 </script>
 
 <template>
@@ -76,7 +48,8 @@ watch(currentProject, async (newProject) => {
         <MenuBar />
         <router-view 
           :active-project="currentProject"
-          :active-sprint="currentSprint"
+          :projects="projects"
+          @select-project="(project) => currentProject = project"
         />
       </div>
     </div>

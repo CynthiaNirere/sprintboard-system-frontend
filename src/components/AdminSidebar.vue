@@ -11,11 +11,7 @@ const title = ref("SprintBoard");
 const sidebarHeader = ref('sidebar-header')
 const logoutButton = ref('logout-button');
 const avatarOutline = ref('avatar-outline');
-const selectedProject = ref("Test Project");
 const sessionExpirationTime = computed(() => {
-  if (!user.value) {
-    return "Unknown";
-  }
   const expireDate = new Date(user.value.sessionExpireDate);
   return expireDate.toLocaleTimeString(navigator.language, {
     hour: '2-digit',
@@ -64,15 +60,17 @@ function logout() {
       <v-select
         :model-value="selectedProject"
         @update:model-value="val => emit('update:selectedProject', val)"
-        class="mx-5 mt-2 flex-grow-0"
         :items="projects"
         item-title="name"
         return-object
+        class="mx-5 mt-2 flex-grow-0"
         color="#2E4DC9"
         bg-color="#DEE6FA"
         rounded="lg"
         density="compact"
         variant="flat"
+        placeholder="Select a project"
+        no-data-text="No projects found"
       >
         <template #selection="{item}">
           <span style="color: #2E4DC9; font-weight: 500">{{ item.title }}</span>
@@ -80,44 +78,44 @@ function logout() {
       </v-select>
   
       <div id="navLinks" class="d-flex ga-2 flex-column">
-        <v-list-item :to="{ name: 'overview'}">
-          <div class="d-flex ga-3">
+        <v-list-item :to="{ name: 'overview' }" class="mx-3 rounded-lg" active-class="active-tab">
+          <div class="d-flex ga-3 align-center">
             <v-icon>mdi-view-dashboard-outline</v-icon>
             <span>Overview</span>
           </div>
         </v-list-item>
-        <v-list-item>
-          <div class="d-flex ga-3">
+        <v-list-item :to="{ name: 'projects' }" class="mx-3 rounded-lg" active-class="active-tab">
+          <div class="d-flex ga-3 align-center">
             <v-icon>mdi-folder-open-outline</v-icon>
             <span>Projects</span>
           </div>
         </v-list-item>
-          <v-list-item>
-          <div class="d-flex ga-3">
+          <v-list-item class="mx-3 rounded-lg" active-class="active-tab">
+          <div class="d-flex ga-3 align-center">
             <v-icon>mdi-rocket-launch-outline</v-icon>
             <span>Active Sprints</span>
           </div>
         </v-list-item>
-        <v-list-item>
-          <div class="d-flex ga-3">
+        <v-list-item class="mx-3 rounded-lg" active-class="active-tab">
+          <div class="d-flex ga-3 align-center">
             <v-icon>mdi-account-multiple-outline</v-icon>
             <span>Team Management</span>
           </div>
         </v-list-item>
-        <v-list-item>
-          <div class="d-flex ga-3">
+        <v-list-item class="mx-3 rounded-lg" active-class="active-tab">
+          <div class="d-flex ga-3 align-center">
             <v-icon>mdi-github</v-icon>
             <span>GitHub Integrations</span>
           </div>
         </v-list-item>
-        <v-list-item>
-          <div class="d-flex ga-3">
+        <v-list-item class="mx-3 rounded-lg" active-class="active-tab">
+          <div class="d-flex ga-3 align-center">
             <v-icon>mdi-cog-outline</v-icon>
             <span>Global Settings</span>
           </div>
         </v-list-item>
-        <v-list-item>
-          <div class="d-flex ga-3">
+        <v-list-item class="mx-3 rounded-lg" active-class="active-tab">
+          <div class="d-flex ga-3 align-center">
             <v-icon>mdi-account-outline</v-icon>
             <span>Profile</span>
           </div>
@@ -205,9 +203,9 @@ function logout() {
   border-radius: 8px;
 }
 
-.v-list-item:active {
-  background-color: #DEE6FA;
+.active-tab {
+  background-color: rgb(222, 230, 250, 0.3);
   color: #2E4DC9;
-  border-radius: 6px;
+  font-weight: 600;
 }
 </style>

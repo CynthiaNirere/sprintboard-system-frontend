@@ -28,11 +28,11 @@ const router = createRouter({
       name: "adminUsers",
       component: () => import("./views/AdminUsers.vue"),
     },
-    // {
-    //   path: "/storyboard",
-    //   name: "storyboard",
-    //   component: () => import("./views/Storyboard.vue"),
-    // },
+    {
+      path: "/storyboard",
+      name: "storyboard",
+      component: () => import("./views/Storyboard.vue"),
+    },
     {
       path: "/shows",
       name: "shows",
@@ -60,17 +60,27 @@ const router = createRouter({
       redirect: { name: "overview" },
       children: [
         {
-          path: "storyboard",
+          path: "/storyboard",
           name: "overview",
-          component: () => import("./views/Storyboard.vue"),
-        }
+          component: () => import("./views/StoryboardAdmin.vue"),
+        },
+        {
+          path: "/projects",
+          name: "projects",
+          component: () => import("./views/ProjectsView.vue"),
+        },
+        {
+          path: "/projects/:id",
+          name: "project",
+          component: () => import("./views/ProjectsView.vue"),
+        },
+        {
+          path: "/my-projects",
+          name: "userProjects",
+          component: () => import("./views/UserProject.vue"),
+        },
       ]
     },
-    // {
-    //   path: "/admin/overview",
-    //   name: "overview",
-    //   component: () => import("./views/Overview.vue"),
-    // },
     {
       path: "/admin/dashboard",
       name: "adminDashboard",
@@ -112,21 +122,6 @@ const router = createRouter({
       name: "confirmation",
       component: () => import("./views/Confirmation.vue"),
     },
-    {
-  path: "/projects",
-  name: "projects",
-  component: () => import("./views/ProjectsView.vue"),
-},
-{
-  path: "/projects/:id",
-  name: "project",
-  component: () => import("./views/ProjectsView.vue"),
-},
-{
-  path: "/my-projects",
-  name: "userProjects",
-  component: () => import("./views/UserProject.vue"),
-},
 ],
 });
 

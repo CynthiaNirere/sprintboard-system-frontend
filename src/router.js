@@ -94,7 +94,22 @@ const router = createRouter({
       name: "confirmation",
       component: () => import("./views/Confirmation.vue"),
     },
-  ],
+    {
+  path: "/projects",
+  name: "projects",
+  component: () => import("./views/ProjectsView.vue"),
+},
+{
+  path: "/projects/:id",
+  name: "project",
+  component: () => import("./views/ProjectsView.vue"),
+},
+{
+  path: "/my-projects",
+  name: "userProjects",
+  component: () => import("./views/UserProject.vue"),
+},
+],
 });
 
 export default router;

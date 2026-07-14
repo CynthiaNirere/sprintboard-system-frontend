@@ -21,6 +21,8 @@ const nameRules = [(v) => !!v || "Project name is required"];
 const user = JSON.parse(localStorage.getItem("user"));
 const isAdmin = user?.globalRole === "ADMIN";
 
+const emit = defineEmits(['select-project']);
+
 onMounted(async () => {
   await getProjects();
 });
@@ -101,7 +103,11 @@ async function deleteProject() {
 }
 
 function openProject(id) {
-  router.push({ name: "project", params: { id: id } });
+  const desiredProject = projects.value.find(p => p.id === id);
+  if (desiredProject) {
+    emit('select-project', desiredProject);
+    router.push({ name: "overview" });
+  }
 }
 </script>
 

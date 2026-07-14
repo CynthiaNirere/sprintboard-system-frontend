@@ -18,11 +18,14 @@ const form = ref(null);
 const snackbar = ref({ value: false, color: "", text: "" });
 
 const user = ref({
+  username: "",
   firstName: "",
   lastName: "",
   username: "",
   email: "",
   password: "",
+  globalRole: "",
+  githubAccount: ""
 });
 
 const accountPasswords = ref({
@@ -58,7 +61,7 @@ onMounted(async () => {
 
 function routeByRole(userData) {
   if (userData.globalRole === "ADMIN") {
-    router.push({ name: "projects" });
+    router.push({ name: "overview" });
   } else {
     router.push({ name: "userProjects" });
   }

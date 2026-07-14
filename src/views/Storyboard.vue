@@ -47,7 +47,7 @@ async function getProjectsForUser(){
     })
     .catch((error) => {
       console.log(error);
-      events.value = [];
+      user.value = null;
       snackbar.value.value = true;
       snackbar.value.color = "error";
       snackbar.value.text = error.response?.data?.message || "Error loading user";
@@ -61,10 +61,10 @@ async function getTicketsForSprint(sprintId) {
     })
     .catch((error) => {
       console.log(error);
-      events.value = [];
+      tickets.value = [];
       snackbar.value.value = true;
       snackbar.value.color = "error";
-      snackbar.value.text = error.response?.data?.message || "Error loading sprint";
+      snackbar.value.text = error.response?.data?.message || "Error loading tickets";
     });
 }
 
@@ -75,7 +75,7 @@ async function getBoardStatusesForProject(projectId) {
     })
     .catch((error) => {
       console.log(error);
-      events.value = [];
+      board_statuses.value = [];
       snackbar.value.value = true;
       snackbar.value.color = "error";
       snackbar.value.text = error.response?.data?.message || "Error loading statuses";

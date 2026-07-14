@@ -149,7 +149,7 @@ async function del(){
 <style scoped>
 .modal-mask {
   position: fixed;
-  z-index: 1000;
+  z-index: 1007;
   top: 0;
   left: 0;
   width: 100%;

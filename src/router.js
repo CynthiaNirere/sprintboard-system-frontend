@@ -29,11 +29,6 @@ const router = createRouter({
       component: () => import("./views/AdminUsers.vue"),
     },
     {
-      path: "/storyboard",
-      name: "storyboard",
-      component: () => import("./views/Storyboard.vue"),
-    },
-    {
       path: "/shows",
       name: "shows",
       component: () => import("./views/ShowList.vue"),
@@ -60,24 +55,37 @@ const router = createRouter({
       redirect: { name: "overview" },
       children: [
         {
-          path: "/storyboard",
+          path: "storyboard",
           name: "overview",
           component: () => import("./views/StoryboardAdmin.vue"),
         },
         {
-          path: "/projects",
+          path: "projects",
           name: "projects",
           component: () => import("./views/ProjectsView.vue"),
         },
         {
-          path: "/projects/:id",
+          path: "projects/:id",
           name: "project",
           component: () => import("./views/ProjectsView.vue"),
         },
         {
-          path: "/my-projects",
+          path: "my-projects",
           name: "userProjects",
           component: () => import("./views/UserProject.vue"),
+        },
+      ]
+    },
+    {
+      path: "/user",
+      name: "userLayout",
+      component: () => import("./components/UserLayout.vue"),
+      redirect: { name: "myTasks" },
+      children: [
+        {
+          path: "storyboard",
+          name: "myTasks",
+          component: () => import("./views/Storyboard.vue"),
         },
       ]
     },

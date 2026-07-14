@@ -26,4 +26,13 @@ onMounted(async () => {
       </div>
     </div>
   </div>
+  
+  <v-snackbar v-model="snackbar.value" rounded="pill">
+    {{ snackbar.text }}
+    <template v-slot:actions>
+      <v-btn :color="snackbar.color" variant="text" @click="snackbar.value = false">
+        Close
+      </v-btn>
+    </template>
+  </v-snackbar>
 </template>

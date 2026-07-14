@@ -57,10 +57,10 @@ async function getTicketsForSprint(sprintId) {
     })
     .catch((error) => {
       console.log(error);
-      events.value = [];
+      tickets.value = [];
       snackbar.value.value = true;
       snackbar.value.color = "error";
-      snackbar.value.text = error.response?.data?.message || "Error loading sprint";
+      snackbar.value.text = error.response?.data?.message || "Error loading tickets";
     });
 }
 
@@ -71,7 +71,7 @@ async function getBoardStatusesForProject(projectId) {
     })
     .catch((error) => {
       console.log(error);
-      events.value = [];
+      board_statuses.value = [];
       snackbar.value.value = true;
       snackbar.value.color = "error";
       snackbar.value.text = error.response?.data?.message || "Error loading statuses";
@@ -83,14 +83,13 @@ async function updateTicket(ticket) {
     .then((response) => {
       snackbar.value.value = true;
       snackbar.value.color = "green";
-      snackbar.value.text = `${ticket.value.status} updated successfully!`;
+      snackbar.value.text = `Ticket ${ticket.value.id} updated successfully!`;
     })
     .catch((error) => {
       console.log(error);
-      
       snackbar.value.value = true;
       snackbar.value.color = "error";
-      snackbar.value.text = error.response?.data?.message || "Error loading sprint";
+      snackbar.value.text = error.response?.data?.message || "Error loading ticket";
     });
 }
 
@@ -150,10 +149,10 @@ function addTicket(status){
       </div>
 
       <div class="grid-container ga-4 ">
-        <v-card v-for="status in board_statuses" class="status " @dragover.prevent @drop="onDrop(status)" style="max-height: 80vh;">
+        <v-card v-for="status in board_statuses" :key="status.id" class="status" @dragover.prevent @drop="onDrop(status)" style="max-height: 80vh;">
           <h3 class="text-center my-2">{{ status.name }}</h3>
           <div class="overflow-y-auto" style="max-height: 85%;">
-            <Ticket v-for="ticket in tickets.filter(ticket => ticket.statusId === status.id)" @click="openModal(ticket, false)" :ticket="ticket" draggable="true" @dragstart="dragStart(ticket)" @dragEnd="dragEnd(ticket)"/>
+            <Ticket v-for="ticket in tickets.filter(ticket => ticket.statusId === status.id)" :key="ticket.id" @click="openModal(ticket, false)" :ticket="ticket" draggable="true" @dragstart="dragStart(ticket)" @dragEnd="dragEnd(ticket)"/>
           </div>
           <v-btn class="d-block mx-auto my-4" @click="addTicket(status)">Add Ticket</v-btn>
         </v-card>
@@ -174,7 +173,7 @@ function addTicket(status){
   </v-container>
 </template>
 
-<style>
+<style scoped>
   .status {
     background-color: #FAF9F6;
     display: flex;

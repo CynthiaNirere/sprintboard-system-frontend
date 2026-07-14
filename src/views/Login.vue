@@ -63,7 +63,7 @@ function routeByRole(userData) {
   if (userData.globalRole === "ADMIN") {
     router.push({ name: "overview" });
   } else {
-    router.push({ name: "userProjects" });
+    router.push({ name: "myTasks" });
   }
 }
 

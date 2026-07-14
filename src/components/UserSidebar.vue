@@ -18,8 +18,6 @@ const sessionExpirationTime = computed(() => {
     minute: '2-digit'
   });
 });
-const props = defineProps(['projects', 'selectedProject']);
-const emit = defineEmits(['update:selectedProject']);
 
 onMounted(async () => {
   logoURL.value = ocLogo;
@@ -55,65 +53,22 @@ function logout() {
         </router-link>
         <h3 class="text-white font-weight-bold">{{ title }}</h3>
       </div>
-
-      <div id="workingIn">Working In</div>
-      <v-select
-        :model-value="selectedProject"
-        @update:model-value="val => emit('update:selectedProject', val)"
-        :items="projects"
-        item-title="name"
-        return-object
-        class="mx-5 mt-2 flex-grow-0"
-        color="#2E4DC9"
-        bg-color="#DEE6FA"
-        rounded="lg"
-        density="compact"
-        variant="flat"
-        placeholder="Select a project"
-        no-data-text="No projects found"
-      >
-        <template #selection="{item}">
-          <span style="color: #2E4DC9; font-weight: 500">{{ item.title }}</span>
-        </template>
-      </v-select>
   
       <div id="navLinks" class="d-flex ga-2 flex-column">
-        <v-list-item :to="{ name: 'overview' }" class="mx-3 rounded-lg" active-class="active-tab">
+        <v-list-item :to="{ name: 'myTasks' }" class="mx-3 rounded-lg" active-class="active-tab">
           <div class="d-flex ga-3 align-center">
-            <v-icon>mdi-view-dashboard-outline</v-icon>
-            <span>Overview</span>
+            <v-icon>mdi-order-bool-ascending-variant</v-icon>
+            <span>My Tasks</span>
           </div>
         </v-list-item>
-        <v-list-item :to="{ name: 'projects' }" class="mx-3 rounded-lg" active-class="active-tab">
-          <div class="d-flex ga-3 align-center">
-            <v-icon>mdi-folder-open-outline</v-icon>
-            <span>Projects</span>
-          </div>
-        </v-list-item>
+
           <v-list-item class="mx-3 rounded-lg" active-class="active-tab">
           <div class="d-flex ga-3 align-center">
             <v-icon>mdi-rocket-launch-outline</v-icon>
-            <span>Active Sprints</span>
+            <span>Current Sprint</span>
           </div>
         </v-list-item>
-        <v-list-item class="mx-3 rounded-lg" active-class="active-tab">
-          <div class="d-flex ga-3 align-center">
-            <v-icon>mdi-account-multiple-outline</v-icon>
-            <span>Team Management</span>
-          </div>
-        </v-list-item>
-        <v-list-item class="mx-3 rounded-lg" active-class="active-tab">
-          <div class="d-flex ga-3 align-center">
-            <v-icon>mdi-github</v-icon>
-            <span>GitHub Integrations</span>
-          </div>
-        </v-list-item>
-        <v-list-item class="mx-3 rounded-lg" active-class="active-tab">
-          <div class="d-flex ga-3 align-center">
-            <v-icon>mdi-cog-outline</v-icon>
-            <span>Global Settings</span>
-          </div>
-        </v-list-item>
+
         <v-list-item class="mx-3 rounded-lg" active-class="active-tab">
           <div class="d-flex ga-3 align-center">
             <v-icon>mdi-account-outline</v-icon>
@@ -169,14 +124,8 @@ function logout() {
   height: 4rem;
 }
 
-#workingIn {
-  text-transform: uppercase; 
-  font-weight: 600; 
-  font-size: small;
-  letter-spacing: 4%;
-  color: rgb(154, 151, 151);
-  margin-top: 0.7rem;
-  margin-left: 1.2rem;
+#navLinks {
+  margin-top: 1.2rem;
 }
 
 #userProfile {
@@ -197,7 +146,7 @@ function logout() {
 
 .logout-button {
   width: 100%;
-  color: rgb(73, 71, 71);
+  color: rgb(71, 73, 71);
   text-transform: capitalize;
   border: 1px solid rgb(211, 205, 205);
   border-radius: 8px;

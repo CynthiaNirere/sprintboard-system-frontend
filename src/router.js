@@ -46,13 +46,18 @@ const router = createRouter({
     {
       path: "/profile",
       name: "profile",
-      component: () => import("./views/Ticket.vue"),
+      component: () => import("./views/Profile.vue"),
     },
     {
       path: "/admin",
       name: "adminLayout",
-      component: () => import("./components/AdminLayout.vue"),
-      redirect: { name: "overview" },
+      ccomponent: () => import("./components/AdminLayout.vue"),
+     redirect: { name: "overview" },
+     beforeEnter: (to, from, next) => {
+        const user = JSON.parse(localStorage.getItem("user") || "{}");
+       if (user.globalRole === "ADMIN") next();
+       else next({ name: "myTasks" }); 
+  },
       children: [
         {
           path: "storyboard",
@@ -74,6 +79,11 @@ const router = createRouter({
           name: "userProjects",
           component: () => import("./views/UserProject.vue"),
         },
+        { path: "profile",    
+          name: "profile",    
+          component: () => import("./views/Profile.vue")
+        },
+
       ]
     },
     {
@@ -87,6 +97,11 @@ const router = createRouter({
           name: "myTasks",
           component: () => import("./views/Storyboard.vue"),
         },
+        {
+      path: "profile",
+      name: "userProfile",
+      component: () => import("./views/Profile.vue"),
+    },
       ]
     },
     {

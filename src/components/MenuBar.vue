@@ -27,6 +27,12 @@ function logout() {
   user.value = null;
   router.push({ name: "login" });
 }
+function goToProfile() {
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  router.push({
+    name: user.globalRole === "ADMIN" ? "profile" : "userProfile",
+  });
+}
 </script>
 
 <template>
@@ -69,8 +75,8 @@ function logout() {
               <p class="text-caption mt-1">
                 {{ user.email }}
               </p>
-              <v-divider class="my-3"></v-divider>
-              <v-btn rounded variant="text" @click="router.push({ name: 'profile' })">Profile</v-btn>
+              <v-divider class="my-3"></v-divider> <v-divider class="my-3">
+              </v-divider> <v-btn rounded variant="text" @click="goToProfile">Profile</v-btn>
               <v-btn rounded variant="text" @click="logout()">Logout</v-btn>
             </div>
           </v-card-text>

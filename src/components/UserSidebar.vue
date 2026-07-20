@@ -63,10 +63,10 @@ function logout() {
           </div>
         </v-list-item>
 
-          <v-list-item class="mx-3 rounded-lg" active-class="active-tab">
+          <v-list-item :to="{ name: 'userSprints' }" class="mx-3 rounded-lg" active-class="active-tab">
           <div class="d-flex ga-3 align-center">
             <v-icon>mdi-rocket-launch-outline</v-icon>
-            <span>Current Sprint</span>
+            <span> Sprints </span>
           </div>
         </v-list-item>
 

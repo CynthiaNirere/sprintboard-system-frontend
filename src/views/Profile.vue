@@ -142,8 +142,6 @@ async function saveAccountDetails() {
             v-model="user.firstName"
             variant="outlined"
             density="comfortable"
-            readonly
-            bg-color="grey-lighten-4"
           ></v-text-field>
         </v-col>
         <v-col cols="12" sm="6">
@@ -152,8 +150,6 @@ async function saveAccountDetails() {
             v-model="user.lastName"
             variant="outlined"
             density="comfortable"
-            readonly
-            bg-color="grey-lighten-4"
           ></v-text-field>
         </v-col>
       </v-row>

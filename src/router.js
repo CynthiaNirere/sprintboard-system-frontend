@@ -52,6 +52,7 @@ const router = createRouter({
       path: "/admin",
       name: "adminLayout",
       component: () => import("./components/AdminLayout.vue"),
+      component: () => import("./components/AdminLayout.vue"),
      redirect: { name: "overview" },
      beforeEnter: (to, from, next) => {
         const user = JSON.parse(localStorage.getItem("user") || "{}");

@@ -40,3 +40,12 @@ npm run build
 ```
 npm run lint
 ```
+
+8. Using docker to deploy
+Be sure the backend docker compose is running first so that the network exists.
+
+commands:
+   docker compose up -d
+
+visit: http://localhost:8080/
+

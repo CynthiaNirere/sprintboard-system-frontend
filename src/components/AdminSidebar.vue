@@ -38,6 +38,7 @@ function logout() {
   user.value = null;
   router.push({ name: "login" });
 }
+
 </script>
 
 <template>
@@ -114,12 +115,12 @@ function logout() {
             <span>Global Settings</span>
           </div>
         </v-list-item>
-        <v-list-item class="mx-3 rounded-lg" active-class="active-tab">
-          <div class="d-flex ga-3 align-center">
-            <v-icon>mdi-account-outline</v-icon>
-            <span>Profile</span>
-          </div>
-        </v-list-item>
+       <v-list-item :to="{ name: 'profile' }" class="mx-3 rounded-lg" active-class="active-tab">
+  <div class="d-flex ga-3 align-center">
+    <v-icon>mdi-account-outline</v-icon>
+    <span>Profile</span>
+  </div>
+</v-list-item>
       </div>
   
       <div id="userProfile" class="mt-auto">

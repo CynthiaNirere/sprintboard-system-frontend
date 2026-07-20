@@ -38,8 +38,8 @@ const router = createRouter({
       name: "adminLayout",
       component: () => import("./components/AdminLayout.vue"),
       component: () => import("./components/AdminLayout.vue"),
-      redirect: { name: "adminOverview" },
-      beforeEnter: (to, from, next) => {
+     redirect: { name: "overview" },
+     beforeEnter: (to, from, next) => {
         const user = JSON.parse(localStorage.getItem("user") || "{}");
         if (user.globalRole === "ADMIN") next();
         else next({ name: "userOverview" }); 

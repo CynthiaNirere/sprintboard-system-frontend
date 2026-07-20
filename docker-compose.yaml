@@ -1,8 +1,8 @@
 version: '3.8'
 
 networks:
-  jira_backend_network:
-    external: true # Tells Docker the network already exists
+  jira_network:
+    name: jira_network
 
 services:
   frontend:
@@ -10,4 +10,4 @@ services:
     ports:
       - "8080:80"
     networks:
-      - jira_backend_network
+      - jira_network

@@ -102,9 +102,12 @@ function formatRole(role) {
         </v-list-item>
 
         <v-list-item :to="{ name: 'myProjects' }" class="mx-3 rounded-lg" active-class="active-tab">
+          <v-list-item :to="{ name: 'userSprints' }" class="mx-3 rounded-lg" active-class="active-tab">
           <div class="d-flex ga-3 align-center">
             <v-icon>mdi-folder-open-outline</v-icon>
             <span>My Projects</span>
+            <v-icon>mdi-rocket-launch-outline</v-icon>
+            <span> Sprints </span>
           </div>
         </v-list-item>
 

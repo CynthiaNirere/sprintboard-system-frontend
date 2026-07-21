@@ -97,7 +97,7 @@ function logout() {
             <span>Active Sprints</span>
           </div>
         </v-list-item>
-        <v-list-item class="mx-3 rounded-lg" active-class="active-tab">
+        <v-list-item :to="{ name: 'teamManagement' }" class="mx-3 rounded-lg" active-class="active-tab">
           <div class="d-flex ga-3 align-center">
             <v-icon>mdi-account-multiple-outline</v-icon>
             <span>Team Management</span>

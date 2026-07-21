@@ -79,6 +79,11 @@ const router = createRouter({
           name: "userProjects",
           component: () => import("./views/UserProject.vue"),
         },
+        {
+          path: "team-management",
+          name: "teamManagement",
+          component: () => import("./views/TeamManagement.vue"),
+        },
         { path: "profile",    
           name: "profile",    
           component: () => import("./views/Profile.vue")

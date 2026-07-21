@@ -1,0 +1,11 @@
+networks:
+  jira_network:
+    name: jira_network
+
+services:
+  frontend:
+    build: .
+    ports:
+      - "8080:80"
+    networks:
+      - jira_network

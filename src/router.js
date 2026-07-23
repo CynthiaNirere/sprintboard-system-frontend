@@ -110,11 +110,7 @@ const router = createRouter({
       name: "adminDashboard",
       component: () => import("./views/AdminDashboard.vue"),
     },
-    {
-      path: "/shows/:id/events/:eventId/seatmap",
-      name: "seatmap",
-      component: () => import("./views/SeatMap.vue"),
-    },
+
     {
       path: "/project-admin/:id",
       name: "projectAdminLayout",

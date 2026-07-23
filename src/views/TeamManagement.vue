@@ -1,19 +1,22 @@
 <script setup>
 import { onMounted, ref, watch, computed } from "vue";
 import UserServices from "../services/UserServices.js";
-
-// const projects = ref([]);
-// const currentProject = ref(null);
+import projectServices from "../services/projectServices.js";
 
 const user = ref(null);
 const users = ref([]);
 const search = ref("");
+const projects = ref([]);
+const currentProject = ref(null);
+const props = defineProps(['activeProject', 'projects']);
+// const emit = defineEmits(['select-project']);
+const projectMember = ref(null);
+const projectMembers = ref([]);
+
 const adminChip = ref('admin-chip');
 const userChip = ref('user-chip');
 const userSearchBar = ref('user-search-bar');
 const pageHeader = ref('page-header');
-// const props = defineProps(['activeProject', 'projects']);
-// const emit = defineEmits(['select-project']);
 const selectRole = ref('select-role');
 
 const snackbar = ref({
@@ -25,22 +28,18 @@ const snackbar = ref({
 onMounted(async () => {
   user.value = JSON.parse(localStorage.getItem("user"));
   await getUsers();
+  await getProjectMembers(currentProject.value.id);
 });
 
-// watch(() => props.activeProject, async (newProject) => {
-//   if (newProject) {
-//     await getBoardStatusesForProject(newProject.id);
-
-//     if (newProject.projectSprints?.length > 0) {
-//       currentSprint.value = newProject.projectSprints[0].id;
-//       await getTicketsForSprint(currentSprint.value);
-//     }
-//     else {
-//       currentSprint.value = null;
-//       tickets.value = [];
-//     }
-//   }
-// }, { immediate: true});
+watch(() => props.activeProject, async (newProject) => {
+  if (newProject) {
+    try {
+      await getProjectMembers(newProject.id);
+    } catch (err) {
+      console.log(err);
+    }
+  }
+}, { immediate: true});
 
 async function getUsers() {
   await UserServices.getUser()
@@ -71,9 +70,71 @@ async function updateUser(user) {
     });
 }
 
-// function setProject(projectId){
-//   emit('select-project', projectId);
-// }
+async function getProjectMembers(project) {
+  await projectServices.getProjectMembers(project.value.id)
+    .then((response) => {
+      projectMembers.value = response.data;
+    })
+    .catch((error) => {
+      console.log(error);
+      projectMembers.value = [];
+      snackbar.value = true;
+      snackbar.value.color = "error";
+      snackbar.value.text = error.response?.data?.message || "Error loading project members";       
+    });
+}
+
+async function addProjectMember(projectMember) {
+  await projectServices.addProjectMember(projectMember.value)
+    .then(() => {
+      snackbar.value.value = true;
+      snackbar.value.color = "green";
+      snackbar.value.text = `User ${projectMember.value.userId} added to project successfully!`;
+    })
+    .catch((error) => {
+      console.log(error);
+      snackbar.value.value = true;
+      snackbar.value.color = "error";
+      snackbar.value.text = error.response.data.message;
+    });
+  await getProjectMembers(currentProject.value);
+}
+
+async function updateProjectMember(projectMember) {
+  await projectServices.updateProjectMember(projectMember.value)
+    .then(() => {
+      snackbar.value.value = true;
+      snackbar.value.color = "green";
+      snackbar.value.text = `Role for user ${projectMember.value.userId} updated successfully!`;
+    })
+    .catch((error) => {
+      console.log(error);
+      snackbar.value.value = true;
+      snackbar.value.color = "error";
+      snackbar.value.text = error.response.data.message;
+    });
+  await getProjectMembers(currentProject.value);
+}
+
+async function deleteProjectMember() {
+  await projectServices.deleteProjectMember()
+    .then(() => {
+      snackbar.value.value = true;
+      snackbar.value.color = "green";
+      snackbar.value.text = `User ${userId} deleted successfully from project ${currentProject.value.projectId}!`;
+    })
+    .catch((error) => {
+      console.log(error);
+      snackbar.value.value = true;
+      snackbar.value.color = "error";
+      snackbar.value.text = error.response.data.message;
+    });
+  await getProjectMembers(currentProject.value);
+}
+
+function setProject(projectId){
+  emit('select-project', projectId);
+}
 
 const filteredUsers = computed(() => {
   if (!search.value) return users.value;
@@ -83,7 +144,11 @@ const filteredUsers = computed(() => {
 });
 
 function formatRole(role) {
-  return role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
+  let splitString = role.toLowerCase().split(' ');
+  for (let i = 0; i < splitString.length; i++) {
+    splitString[i] = splitString[i].charAt(0).toUpperCase() + splitString[i].substring(1);
+  }
+  return splitString.join(' ');
 }
 
 function isUserAdmin(role) {
@@ -97,6 +162,78 @@ function isUserAdmin(role) {
 
       <h3 :class="pageHeader">Team Management & Roles</h3>
 
+      <span class="text-uppercase font-weight-bold" style="font-size: smaller; color: rgba(95, 95, 85, 0.92); letter-spacing: 2%;">{{ currentProject }} Members</span>
+      
+      <p class="mt-2 mb-4" style="color:rgba(95, 95, 85, 0.92)">Project Admins can add users to this project and set their project role.
+      </p>
+      
+      <v-card class="rounded-lg mt-4 mb-6">
+        <v-table>
+          <tbody>
+            <tr v-for="user in users" :key="user.id">
+              <td>
+                <div class="d-flex justify-space-between">
+                  <div id="firstHalf" class="d-flex align-center ga-4 py-2 ml-2">
+                    <div id="userInitials">
+                      <v-avatar :class="avatarOutline" class="mx-auto text-center" color="#1740E3" size="small">
+                        <span class="white--text font-weight-bold">{{
+                          `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`
+                        }}</span>
+                      </v-avatar>
+                    </div>
+                    <div>
+                      <div class="font-weight-bold">
+                        {{ user.firstName }} {{ user.lastName }}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div id="secondHalf" class="d-flex align-center ga-4 py-2 mr-2">
+                    <div>
+                      <v-chip 
+                        :class="isUserAdmin(user.globalRole) ? 'bg-blue-lighten-4' : 'bg-grey-lighten-2'"
+                        class="font-weight-bold px-3"
+                        size="small"
+                        variant="flat"
+                        >
+                        {{ formatRole(user.globalRole) }}
+                      </v-chip>
+                    </div>
+                    
+                    <div>
+                      <v-select
+                        v-model="user.globalRole"
+                        :items="['PROJECT ADMIN', 'DEVELOPER']"
+                        :item-title="item => formatRole(item)"
+                        density="compact"
+                        variant="solo"
+                        hide-details
+                        flat
+                        bg-color="#E4E4E4"
+                        rounded="lg"
+                        :class="selectRole"
+                        :menu-icon="null"
+                        append-inner-icon="mdi-unfold-more-horizontal"
+                        @update:modelValue="updateUser({ value: user })"
+                      >
+                      </v-select>
+                    </div>
+
+                    <div>
+                      <div id="checkmark-background" class="d-flex justify-center align-center">
+                        <v-icon id="checkmark" size="20" color="red">
+                          mdi-account-minus-outline
+                        </v-icon>
+                      </div>               
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </v-table>
+      </v-card>
+      
       <p class="mb-4" style="color:rgba(95, 95, 85, 0.92)">Global role (Admin/User) controls workspace access. Project role (Project Admin/Developer)
           is set per-project - the same person can hold different roles on different projects.
       </p>
@@ -113,143 +250,70 @@ function isUserAdmin(role) {
         clearable
         class="my-2 pb-2 pl-2"
         :class="userSearchBar"
-      ></v-text-field>    
-
+        ></v-text-field>    
+      
       <v-card class="rounded-lg mt-4 mb-6">
         <v-table>
           <tbody>
             <tr v-for="user in users" :key="user.id">
-              <td class="text-center">            
-                <div id="userInitials">
-                  <v-avatar :class="avatarOutline" class="mx-auto text-center" color="#1740E3" size="small">
-                    <span class="white--text font-weight-bold">{{
-                      `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`
-                    }}</span>
-                  </v-avatar>
-                </div>
-              </td>
-
-              <td>            
-                <div class="d-flex flex-column">
-                  <div class="font-weight-bold">
-                    {{ user.firstName }} {{ user.lastName }}
+              <td>
+                <div class="d-flex justify-space-between">
+                  <div id="firstHalf" class="d-flex align-center ga-4 py-2 ml-2">
+                    <div id="userInitials">
+                      <v-avatar :class="avatarOutline" class="mx-auto text-center" color="#1740E3" size="small">
+                        <span class="white--text font-weight-bold">{{
+                          `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`
+                        }}</span>
+                      </v-avatar>
+                    </div>
+                    <div class="d-flex flex-column">
+                      <div class="font-weight-bold">
+                        {{ user.firstName }} {{ user.lastName }}
+                      </div>
+                      <div style="color:rgba(95, 95, 85, 0.92)">
+                        {{ user.email }}
+                      </div>
+                    </div>
                   </div>
-                  <div style="color:rgba(95, 95, 85, 0.92)">
-                    {{ user.email }}
-                  </div>
-                </div>
-              </td>
-
-              <td>            
-                <div style="color:rgba(80, 80, 80)">
-                  {{ activeTasks || 0 }} active tasks
-                </div>
-              </td>
-
-              <td class="text-center">
-
-                  <v-chip 
-                    
-                    :class="isUserAdmin(user.globalRole) ? 'bg-blue-lighten-4' : 'bg-grey-lighten-2'"
-                    class="font-weight-bold px-3"
-                    size="small"
-                    variant="flat"
-                  >
-                    {{ formatRole(user.globalRole) }}
-                  </v-chip>
-         
-              </td>
-
-              <td>             
-                <v-select
-                  v-model="user.globalRole"
-                  :items="['ADMIN', 'USER']"
-                  :item-title="item => formatRole(item)"
-                  density="compact"
-                  variant="solo"
-                  hide-details
-                  flat
-                  bg-color="#E4E4E4"
-                  rounded="lg"
-                  :class="selectRole"
-                  :menu-icon="null"
-                  append-inner-icon="mdi-unfold-more-horizontal"
-                  @update:modelValue="updateUser({ value: user })"
-                >
-                </v-select>
-              </td>
-            </tr>
-          </tbody>
-        </v-table>
-      </v-card>
-
-      <span class="text-uppercase font-weight-bold" style="font-size: smaller; color: rgba(95, 95, 85, 0.92); letter-spacing: 2%;">Test Project Members</span>
-
-      <p class="mt-2 mb-4" style="color:rgba(95, 95, 85, 0.92)">Project Admins can add users to this project. Only Admins can grant the Project Admin role.
-      </p>
-
-      <v-card class="rounded-lg mt-4 mb-6">
-        <v-table>
-          <tbody>
-            <tr v-for="user in users" :key="user.id">
-              <td class="text-center">            
-                <div id="userInitials">
-                  <v-avatar :class="avatarOutline" class="mx-auto text-center" color="#1740E3" size="small">
-                    <span class="white--text font-weight-bold">{{
-                      `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`
-                    }}</span>
-                  </v-avatar>
-                </div>
-              </td>
-
-              <td>            
-                <div class="d-flex flex-column">
-                  <div class="font-weight-bold">
-                    {{ user.firstName }} {{ user.lastName }}
-                  </div>
-                  <div style="color:rgba(95, 95, 85, 0.92)">
-                    {{ user.email }}
+  
+                  <div id="secondHalf" class="d-flex align-center ga-4 py-2 mr-2">
+                    <div>
+                      <div style="color:rgba(80, 80, 80)">
+                        {{ activeTasks || 0 }} active tasks
+                      </div>
+                    </div>
+  
+                    <div>
+                      <v-chip 
+                        :class="isUserAdmin(user.globalRole) ? 'bg-blue-lighten-4' : 'bg-grey-lighten-2'"
+                        class="font-weight-bold px-3"
+                        size="small"
+                        variant="flat"
+                      >
+                        {{ formatRole(user.globalRole) }}
+                      </v-chip>
+                    </div>
+  
+                    <div>
+                      <v-select
+                        v-model="user.globalRole"
+                        :items="['ADMIN', 'USER']"
+                        :item-title="item => formatRole(item)"
+                        density="compact"
+                        variant="solo"
+                        hide-details
+                        flat
+                        bg-color="#E4E4E4"
+                        rounded="lg"
+                        :class="selectRole"
+                        :menu-icon="null"
+                        append-inner-icon="mdi-unfold-more-horizontal"
+                        @update:modelValue="updateUser({ value: user })"
+                      >
+                      </v-select>
+                    </div>
                   </div>
                 </div>
-              </td>
-
-              <td>            
-                <div style="color:rgba(80, 80, 80)">
-                  {{ activeTasks || 0 }} active tasks
-                </div>
-              </td>
-
-              <td class="text-center">
-
-                  <v-chip 
-                    
-                    :class="isUserAdmin(user.globalRole) ? 'bg-blue-lighten-4' : 'bg-grey-lighten-2'"
-                    class="font-weight-bold px-3"
-                    size="small"
-                    variant="flat"
-                  >
-                    {{ formatRole(user.globalRole) }}
-                  </v-chip>
-         
-              </td>
-
-              <td>             
-                <v-select
-                  v-model="user.globalRole"
-                  :items="['ADMIN', 'USER']"
-                  :item-title="item => formatRole(item)"
-                  density="compact"
-                  variant="solo"
-                  hide-details
-                  flat
-                  bg-color="#E4E4E4"
-                  rounded="lg"
-                  :class="selectRole"
-                  :menu-icon="null"
-                  append-inner-icon="mdi-unfold-more-horizontal"
-                  @update:modelValue="updateUser({ value: user })"
-                >
-                </v-select>
               </td>
             </tr>
           </tbody>
@@ -302,5 +366,12 @@ function isUserAdmin(role) {
   .select-role {
     width: 120px;
     color: white;
+  }
+
+  #checkmark-background {
+    background-color: rgba(249, 214, 206, 0.714);
+    border-radius: 25%;
+    width: 30px;
+    height: 30px;
   }
 </style>

@@ -26,6 +26,11 @@ onMounted(async () => {
 });
 
 async function getOwner() {
+  if (!ticket.value.assigneeId) {
+    console.log("Ticket is not assigned to a user!");
+    return;
+  }
+
   await UserServices.getUserById(ticket.value.assigneeId)
     .then((response) => {
       owner.value = response.data;

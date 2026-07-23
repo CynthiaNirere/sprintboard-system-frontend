@@ -2,9 +2,9 @@ import axios from "axios";
 
 var baseurl = "";
 if (process.env.NODE_ENV === "development") {
-  baseurl = "http://localhost:3200/museumapi/";
+  baseurl = "http://localhost:3200/sprintboardapi/";
 } else {
-  baseurl = "/museumapi/";
+  baseurl = "/sprintboardapi/";
 }
 
 const apiClient = axios.create({

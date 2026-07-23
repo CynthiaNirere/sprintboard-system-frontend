@@ -7,7 +7,6 @@ const user = ref(null);
 const users = ref([]);
 const search = ref("");
 const projects = ref([]);
-const currentProject = ref(null);
 const props = defineProps(['activeProject', 'projects']);
 // const emit = defineEmits(['select-project']);
 const projectMember = ref(null);
@@ -17,7 +16,8 @@ const adminChip = ref('admin-chip');
 const userChip = ref('user-chip');
 const userSearchBar = ref('user-search-bar');
 const pageHeader = ref('page-header');
-const selectRole = ref('select-role');
+const selectGlobalRole = ref('select-global-role');
+const selectProjectRole = ref('select-project-role');
 
 const snackbar = ref({
   value: false,
@@ -28,7 +28,6 @@ const snackbar = ref({
 onMounted(async () => {
   user.value = JSON.parse(localStorage.getItem("user"));
   await getUsers();
-  await getProjectMembers(currentProject.value.id);
 });
 
 watch(() => props.activeProject, async (newProject) => {
@@ -70,9 +69,10 @@ async function updateUser(user) {
     });
 }
 
-async function getProjectMembers(project) {
-  await projectServices.getProjectMembers(project.value.id)
+async function getProjectMembers(projectId) {
+  await projectServices.getProjectMembers(projectId)
     .then((response) => {
+      console.log('Project members response is: ', response.data);
       projectMembers.value = response.data;
     })
     .catch((error) => {
@@ -97,23 +97,28 @@ async function addProjectMember(projectMember) {
       snackbar.value.color = "error";
       snackbar.value.text = error.response.data.message;
     });
-  await getProjectMembers(currentProject.value);
+  await getProjectMembers(props.activeProject.id);
 }
 
-async function updateProjectMember(projectMember) {
-  await projectServices.updateProjectMember(projectMember.value)
+async function updateProjectMember(userId, updatedRole) {
+  const data = {
+    userId: userId,
+    projectRole: updatedRole
+  };
+
+  await projectServices.updateProjectMember(props.activeProject.id, data)
     .then(() => {
       snackbar.value.value = true;
       snackbar.value.color = "green";
-      snackbar.value.text = `Role for user ${projectMember.value.userId} updated successfully!`;
+      snackbar.value.text = `Role for user ${userId} updated successfully!`;
     })
     .catch((error) => {
       console.log(error);
       snackbar.value.value = true;
       snackbar.value.color = "error";
-      snackbar.value.text = error.response.data.message;
+      snackbar.value.text = error.response.data.message || `Error updating role for user ${userId}`;
     });
-  await getProjectMembers(currentProject.value);
+  await getProjectMembers(props.activeProject.id);
 }
 
 async function deleteProjectMember() {
@@ -129,7 +134,7 @@ async function deleteProjectMember() {
       snackbar.value.color = "error";
       snackbar.value.text = error.response.data.message;
     });
-  await getProjectMembers(currentProject.value);
+  await getProjectMembers(props.activeProject.id);
 }
 
 function setProject(projectId){
@@ -144,11 +149,23 @@ const filteredUsers = computed(() => {
 });
 
 function formatRole(role) {
-  let splitString = role.toLowerCase().split(' ');
-  for (let i = 0; i < splitString.length; i++) {
-    splitString[i] = splitString[i].charAt(0).toUpperCase() + splitString[i].substring(1);
+  if (role.includes(' ')) {
+    let splitString = role.toLowerCase().split(' ');
+    for (let i = 0; i < splitString.length; i++) {
+      splitString[i] = splitString[i].charAt(0).toUpperCase() + splitString[i].substring(1);
+    }
+    return splitString.join(' ');
   }
-  return splitString.join(' ');
+  else if (role.includes('_')) {
+    let splitString = role.toLowerCase().split('_');
+    for (let i = 0; i < splitString.length; i++) {
+      splitString[i] = splitString[i].charAt(0).toUpperCase() + splitString[i].substring(1);
+    }
+    return splitString.join(' ');
+  }
+  else {
+    return role.charAt(0).toUpperCase() + role.substring(1).toLowerCase();
+  }
 }
 
 function isUserAdmin(role) {
@@ -162,7 +179,7 @@ function isUserAdmin(role) {
 
       <h3 :class="pageHeader">Team Management & Roles</h3>
 
-      <span class="text-uppercase font-weight-bold" style="font-size: smaller; color: rgba(95, 95, 85, 0.92); letter-spacing: 2%;">{{ currentProject }} Members</span>
+      <span class="text-uppercase font-weight-bold" style="font-size: smaller; color: rgba(95, 95, 85, 0.92); letter-spacing: 2%;">{{ props.activeProject?.name }} Members</span>
       
       <p class="mt-2 mb-4" style="color:rgba(95, 95, 85, 0.92)">Project Admins can add users to this project and set their project role.
       </p>
@@ -170,20 +187,20 @@ function isUserAdmin(role) {
       <v-card class="rounded-lg mt-4 mb-6">
         <v-table>
           <tbody>
-            <tr v-for="user in users" :key="user.id">
+            <tr v-for="projectMember in projectMembers" :key="projectMember.id">
               <td>
                 <div class="d-flex justify-space-between">
                   <div id="firstHalf" class="d-flex align-center ga-4 py-2 ml-2">
                     <div id="userInitials">
                       <v-avatar :class="avatarOutline" class="mx-auto text-center" color="#1740E3" size="small">
                         <span class="white--text font-weight-bold">{{
-                          `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`
+                          `${projectMember.firstName.charAt(0)}${projectMember.lastName.charAt(0)}`
                         }}</span>
                       </v-avatar>
                     </div>
                     <div>
                       <div class="font-weight-bold">
-                        {{ user.firstName }} {{ user.lastName }}
+                        {{ projectMember.firstName }} {{ projectMember.lastName }}
                       </div>
                     </div>
                   </div>
@@ -191,19 +208,19 @@ function isUserAdmin(role) {
                   <div id="secondHalf" class="d-flex align-center ga-4 py-2 mr-2">
                     <div>
                       <v-chip 
-                        :class="isUserAdmin(user.globalRole) ? 'bg-blue-lighten-4' : 'bg-grey-lighten-2'"
+                        :class="isUserAdmin(projectMember.globalRole) ? 'bg-blue-lighten-4' : 'bg-grey-lighten-2'"
                         class="font-weight-bold px-3"
                         size="small"
                         variant="flat"
                         >
-                        {{ formatRole(user.globalRole) }}
+                        {{ formatRole(projectMember.project_member.projectRole) }}
                       </v-chip>
                     </div>
                     
                     <div>
                       <v-select
-                        v-model="user.globalRole"
-                        :items="['PROJECT ADMIN', 'DEVELOPER']"
+                        v-model="projectMember.project_member.projectRole"
+                        :items="['PROJECT_ADMIN', 'DEVELOPER']"
                         :item-title="item => formatRole(item)"
                         density="compact"
                         variant="solo"
@@ -211,10 +228,10 @@ function isUserAdmin(role) {
                         flat
                         bg-color="#E4E4E4"
                         rounded="lg"
-                        :class="selectRole"
+                        :class="selectProjectRole"
                         :menu-icon="null"
                         append-inner-icon="mdi-unfold-more-horizontal"
-                        @update:modelValue="updateUser({ value: user })"
+                        @update:modelValue="updateProjectMember(projectMember.id, $event)"
                       >
                       </v-select>
                     </div>
@@ -305,7 +322,7 @@ function isUserAdmin(role) {
                         flat
                         bg-color="#E4E4E4"
                         rounded="lg"
-                        :class="selectRole"
+                        :class="selectGlobalRole"
                         :menu-icon="null"
                         append-inner-icon="mdi-unfold-more-horizontal"
                         @update:modelValue="updateUser({ value: user })"
@@ -363,8 +380,13 @@ function isUserAdmin(role) {
     border-radius: 10px;
   }
 
-  .select-role {
+  .select-global-role {
     width: 120px;
+    color: white;
+  }
+
+  .select-project-role {
+    width: 170px;
     color: white;
   }
 

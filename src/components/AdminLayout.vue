@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, ref, watch } from "vue";
 import AdminSidebar from "./AdminSidebar.vue";
+//import MenuBar from "../components/MenuBar.vue";
 import projectServices from "../services/projectServices.js";
 
 const user = ref(null);
@@ -32,23 +33,28 @@ async function getAllProjects() {
       snackbar.value.value = true;
       snackbar.value.color = "error";
       snackbar.value.text = error.response?.data?.message || "Error loading projects.";
+      snackbar.value.text = error.response?.data?.message || "Error loading projects.";
     });
 }
 </script>
 
 <template>
+    <div class="d-flex">
     <AdminSidebar 
       :projects="projects"
       v-model:selectedProject="currentProject"
     />
-    <div id="main-content" class="d-flex flex-grow-1">
-      <router-view 
-        class="ml-5"
-        :active-project="currentProject"
-        :projects="projects"
-        @select-project="(project) => currentProject = project"
-      />
+    <div id="main-content" class="flex-grow-1">
+      <div class="d-flex flex-column">
+        <!-- <MenuBar /> -->
+        <router-view 
+          :active-project="currentProject"
+          :projects="projects"
+          @select-project="(project) => currentProject = project"
+        />
+      </div>
     </div>
+  </div>
 
   <v-snackbar v-model="snackbar.value" rounded="pill">
     {{ snackbar.text }}

@@ -19,6 +19,7 @@ const emit = defineEmits(['update:selectedProject']);
 onMounted(async () => {
   logoURL.value = ocLogo;
   user.value = JSON.parse(localStorage.getItem("user"));
+  console.log(user);
 });
 
 function logout() {

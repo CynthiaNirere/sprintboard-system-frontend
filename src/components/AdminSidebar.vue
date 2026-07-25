@@ -150,7 +150,7 @@ function formatRole(role) {
       
       <div v-if="user" id="userProfile" class="mt-4">
         <div class="d-flex flex-column mt-4 mx-4 ga-2">
-
+          
           <div id="userInfo" class="d-flex ga-4 align-center">
             <div id="userInitials">
               <v-avatar :class="avatarOutline" class="mx-auto text-center" color="#1740E3" size="small">

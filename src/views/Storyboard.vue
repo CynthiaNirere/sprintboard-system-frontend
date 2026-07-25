@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import TicketServices from "../services/TicketServices.js";
 import UserServices from "../services/UserServices.js";
 import BoardStatusesServices from "../services/BoardStatusesServices.js";
@@ -12,6 +13,8 @@ const currentSprint = ref([]);
 const tickets = ref([]);
 const board_statuses = ref([]);
 const user = ref(null);
+const props = defineProps(['activeProject', 'projects']);
+const emit = defineEmits(['select-project']);
 const props = defineProps(['activeProject', 'projects']);
 const emit = defineEmits(['select-project']);
 
@@ -68,18 +71,18 @@ async function getProjectsForUser(){
     .then((response) => {
       projects.value = response.data.projects || [];
       if (projects.value.length > 0) {
-        currentProject.value = projects.value[0];
-        currentSprint.value = currentProject.value.projectSprints?.[0]?.id || null;
+//         currentProject.value = projects.value[0];
+//         currentSprint.value = currentProject.value.projectSprints?.[0]?.id || null;
       }
-    })
-    .catch((error) => {
-      console.log(error);
-      user.value = null;
-      snackbar.value.value = true;
-      snackbar.value.color = "error";
-      snackbar.value.text = error.response?.data?.message || "Error loading user";
-    });
-}
+//     })
+//     .catch((error) => {
+//       console.log(error);
+//       user.value = null;
+//       snackbar.value.value = true;
+//       snackbar.value.color = "error";
+//       snackbar.value.text = error.response?.data?.message || "Error loading user";
+//     });
+// }
 
 async function getTicketsForSprint(sprintId) {
   await TicketServices.getTicketsForSprint(sprintId)
@@ -125,6 +128,9 @@ async function updateTicket(ticket) {
 }
 
 function setProject(projectId){
+  // currentProject.value = projects.value.find(project => project.id === projectId);
+  // currentSprint.value = null;
+  // getBoardStatusesForProject(projectId);
   emit('select-project', projectId);
 }
 
@@ -141,6 +147,7 @@ function addTicket(status){
   const newTicket = {
     statusId: status.id,
     projectId: props.activeProject.id,
+    projectId: props.activeProject.id,
     sprintId: currentSprint.value,
   };
   openModal(newTicket, true);
@@ -154,23 +161,32 @@ function addTicket(status){
         
         <v-select
           v-if="props.activeProject?.projectSprints"
+          v-if="props.activeProject?.projectSprints"
           v-model="currentSprint"
           label="Sprint"
+          :items="props.activeProject.projectSprints"
           :items="props.activeProject.projectSprints"
           item-title="name"
           item-value="id"
           @update:model-value="getTicketsForSprint"
           placeholder="Select a sprint"
           no-data-text="No sprints found"
+          placeholder="Select a sprint"
+          no-data-text="No sprints found"
         >
         </v-select>
         <v-select
           :model-value="props.activeProject"
+          :model-value="props.activeProject"
           label="Project"
+          :items="props.projects"
           :items="props.projects"
           item-title="name"
           return-object
+          return-object
           @update:model-value="setProject"
+          placeholder="Select a project"
+          no-data-text="No projects found"
           placeholder="Select a project"
           no-data-text="No projects found"
         >

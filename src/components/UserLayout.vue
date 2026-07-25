@@ -1,7 +1,6 @@
 <script setup>
 import { onMounted, ref } from "vue";
 import UserSidebar from "./UserSidebar.vue";
-// import MenuBar from "../components/MenuBar.vue";
 import projectServices from "../services/projectServices.js";
 
 const user = ref(null);
@@ -65,7 +64,6 @@ async function getMyProjects() {
     />
     <div id="main-content" class="flex-grow-1">
       <div class="d-flex flex-column">
-        <!-- <MenuBar /> -->
         <router-view
           :active-project="currentProject"
           :projects="projects"

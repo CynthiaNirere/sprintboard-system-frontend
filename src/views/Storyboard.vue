@@ -83,6 +83,7 @@ async function getProjectsForUser(){
 //       snackbar.value.text = error.response?.data?.message || "Error loading user";
 //     });
 // }
+}, { immediate: true});
 
 async function getTicketsForSprint(sprintId) {
   await TicketServices.getTicketsForSprint(sprintId)
@@ -128,9 +129,6 @@ async function updateTicket(ticket) {
 }
 
 function setProject(projectId){
-  // currentProject.value = projects.value.find(project => project.id === projectId);
-  // currentSprint.value = null;
-  // getBoardStatusesForProject(projectId);
   emit('select-project', projectId);
 }
 

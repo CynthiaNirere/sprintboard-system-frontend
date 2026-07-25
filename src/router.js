@@ -37,8 +37,8 @@ const router = createRouter({
       path: "/admin",
       name: "adminLayout",
       component: () => import("./components/AdminLayout.vue"),
-     redirect: { name: "overview" },
-     beforeEnter: (to, from, next) => {
+      redirect: { name: "adminOverview" },
+      beforeEnter: (to, from, next) => {
         const user = JSON.parse(localStorage.getItem("user") || "{}");
         if (user.globalRole === "ADMIN") next();
         else next({ name: "userOverview" });
@@ -74,7 +74,6 @@ const router = createRouter({
           name: "adminSprints",
           component: () => import("./views/Sprints.vue"),
         },
-
       ]
     },
     {
@@ -89,9 +88,9 @@ const router = createRouter({
           component: () => import("./views/Storyboard.vue"),
         },
         {
-          path: "profile",
-          name: "userProfile",
-          component: () => import("./views/Profile.vue"),
+              path: "profile",
+              name: "userProfile",
+              component: () => import("./views/Profile.vue"),
         },
         {
           path: "backlog",
@@ -102,7 +101,7 @@ const router = createRouter({
           path: "backlog",
           name: "userBacklog",
           component: () => import("./views/BacklogView.vue"),
-        },
+            },
       ]
     },
     {

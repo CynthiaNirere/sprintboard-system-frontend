@@ -3,9 +3,9 @@ import { onMounted, ref, watch } from "vue";
 import TicketServices from "../services/TicketServices.js";
 import UserServices from "../services/UserServices.js";
 import BoardStatusesServices from "../services/BoardStatusesServices.js";
-
 import Ticket from "../components/Ticket.vue";
 import TicketModal from "../components/TicketModal.vue";
+
 const projects = ref([]);
 const currentProject = ref(null);
 const currentSprint = ref([]);
@@ -21,7 +21,6 @@ const snackbar = ref({
   text: "",
 });
 
-
 const currentTicket = ref();
 const isAddTicket = ref(false);
 const isModalOpen = ref(false);
@@ -34,10 +33,6 @@ function openModal(ticket, isAdd) {
 
 onMounted(async () => {
   user.value = JSON.parse(localStorage.getItem("user"));
-  // await getProjectsForUser();
-  // await getBoardStatusesForProject(currentProject.value.id);
-  // if(currentSprint.value)
-  //   await getTicketsForSprint(currentSprint.value);
 });
 
 watch(() => props.activeProject, async (newProject) => {
@@ -54,23 +49,6 @@ watch(() => props.activeProject, async (newProject) => {
     }
   }
 }, { immediate: true});
-
-
-// async function getProjectsForUser(){
-//   await UserServices.getUserById(user.value.id)
-//     .then((response) => {
-//       projects.value = response.data.projects;
-//       currentProject.value = projects.value[0];
-//       currentSprint.value = currentProject.value.projectSprints[0].id;
-//     })
-//     .catch((error) => {
-//       console.log(error);
-//       user.value = null;
-//       snackbar.value.value = true;
-//       snackbar.value.color = "error";
-//       snackbar.value.text = error.response?.data?.message || "Error loading user";
-//     });
-// }
 
 async function getTicketsForSprint(sprintId) {
   await TicketServices.getTicketsForSprint(sprintId)
@@ -116,9 +94,6 @@ async function updateTicket(ticket) {
 }
 
 function setProject(projectId){
-  // currentProject.value = projects.value.find(project => project.id === projectId);
-  // currentSprint.value = null;
-  // getBoardStatusesForProject(projectId);
   emit('select-project', projectId);
 }
 
@@ -139,8 +114,6 @@ function addTicket(status){
   };
   openModal(newTicket, true);
 }
-
-
 </script>
 
 <template>
@@ -159,7 +132,6 @@ function addTicket(status){
           placeholder="Select a sprint"
           no-data-text="No sprints found"
         >
-  
         </v-select>
         <v-select
           :model-value="props.activeProject"
@@ -171,7 +143,6 @@ function addTicket(status){
           placeholder="Select a project"
           no-data-text="No projects found"
         >
-  
         </v-select>
       </div>
 

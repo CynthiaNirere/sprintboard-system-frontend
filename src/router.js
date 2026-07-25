@@ -37,70 +37,52 @@ const router = createRouter({
       path: "/admin",
       name: "adminLayout",
       component: () => import("./components/AdminLayout.vue"),
-     redirect: { name: "overview" },
-     beforeEnter: (to, from, next) => {
+      redirect: { name: "adminOverview" },
+      beforeEnter: (to, from, next) => {
         const user = JSON.parse(localStorage.getItem("user") || "{}");
-       if (user.globalRole === "ADMIN") next();
-       else next({ name: "myTasks" }); 
-  },
+        if (user.globalRole === "ADMIN") next();
+        else next({ name: "userOverview" }); 
+      },
       children: [
         {
           path: "storyboard",
-          name: "overview",
+          name: "adminOverview",
           component: () => import("./views/StoryboardAdmin.vue"),
         },
         {
           path: "projects",
-          name: "projects",
+          name: "adminProjects",
           component: () => import("./views/ProjectsView.vue"),
         },
         {
           path: "projects/:id",
-          name: "project",
+          name: "adminProject",
           component: () => import("./views/ProjectsView.vue"),
-        },
-        {
-          path: "my-projects",
-          name: "userProjects",
-          component: () => import("./views/UserProject.vue"),
         },
         { path: "profile",    
           name: "profile",    
           component: () => import("./views/Profile.vue")
         },
-
       ]
     },
     {
       path: "/user",
       name: "userLayout",
       component: () => import("./components/UserLayout.vue"),
-      redirect: { name: "myTasks" },
+      redirect: { name: "userOverview" },
       children: [
         {
           path: "storyboard",
-          name: "myTasks",
+          name: "userOverview",
           component: () => import("./views/Storyboard.vue"),
         },
         {
-      path: "profile",
-      name: "userProfile",
-      component: () => import("./views/Profile.vue"),
-    },
+          path: "profile",
+          name: "userProfile",
+          component: () => import("./views/Profile.vue"),
+        },
       ]
     },
-    {
-      path: "/admin/dashboard",
-      name: "adminDashboard",
-      component: () => import("./views/AdminDashboard.vue"),
-    },
-
-    {
-      path: "/admin/reports",
-      name: "adminReports",
-      component: () => import("./views/AdminReports.vue"),
-    },
- 
 ],
 });
 

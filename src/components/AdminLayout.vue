@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref, watch } from "vue";
 import AdminSidebar from "./AdminSidebar.vue";
-import MenuBar from "../components/MenuBar.vue";
+//import MenuBar from "../components/MenuBar.vue";
 import projectServices from "../services/projectServices.js";
 
 const user = ref(null);
@@ -32,7 +32,7 @@ async function getAllProjects() {
       projects.value = [];
       snackbar.value.value = true;
       snackbar.value.color = "error";
-      snackbar.value.text = error.response?.data?.message || "Error loading projects";
+      snackbar.value.text = error.response?.data?.message || "Error loading projects.";
     });
 }
 </script>
@@ -45,7 +45,7 @@ async function getAllProjects() {
     />
     <div id="main-content" class="flex-grow-1">
       <div class="d-flex flex-column">
-        <MenuBar />
+        <!-- <MenuBar /> -->
         <router-view 
           :active-project="currentProject"
           :projects="projects"

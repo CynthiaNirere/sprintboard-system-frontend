@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 import TicketServices from "../services/TicketServices.js";
 import UserServices from "../services/UserServices.js";
 import BoardStatusesServices from "../services/BoardStatusesServices.js";
@@ -12,6 +12,8 @@ const currentSprint = ref([]);
 const tickets = ref([]);
 const board_statuses = ref([]);
 const user = ref(null);
+const props = defineProps(['activeProject', 'projects']);
+const emit = defineEmits(['select-project']);
 
 const snackbar = ref({
   value: false,
@@ -38,25 +40,45 @@ onMounted(async () => {
     if (currentSprint.value)
       await getTicketsForSprint(currentSprint.value);
   }
+  // await getProjectsForUser();
+  // await getBoardStatusesForProject(currentProject.value.id);
+  // if(currentSprint.value)
+  //   await getTicketsForSprint(currentSprint.value);
 });
 
-async function getProjectsForUser(){
-  await UserServices.getUserById(user.value.id)
-    .then((response) => {
-      projects.value = response.data.projects || [];
+watch(() => props.activeProject, async (newProject) => {
+  if (newProject) {
+    await getBoardStatusesForProject(newProject.id);
+
+    if (newProject.projectSprints?.length > 0) {
+      currentSprint.value = newProject.projectSprints[0].id;
+      await getTicketsForSprint(currentSprint.value);
+    }
+    else {
+      currentSprint.value = null;
+      tickets.value = [];
+    }
+  }
+}, { immediate: true});
+
+
+// async function getProjectsForUser(){
+//   await UserServices.getUserById(user.value.id)
+//     .then((response) => {
+//       projects.value = response.data.projects || [];
       if (projects.value.length > 0) {
-        currentProject.value = projects.value[0];
-        currentSprint.value = currentProject.value.projectSprints?.[0]?.id || null;
+//         currentProject.value = projects.value[0];
+//         currentSprint.value = currentProject.value.projectSprints?.[0]?.id || null;
       }
-    })
-    .catch((error) => {
-      console.log(error);
-      user.value = null;
-      snackbar.value.value = true;
-      snackbar.value.color = "error";
-      snackbar.value.text = error.response?.data?.message || "Error loading user";
-    });
-}
+//     })
+//     .catch((error) => {
+//       console.log(error);
+//       user.value = null;
+//       snackbar.value.value = true;
+//       snackbar.value.color = "error";
+//       snackbar.value.text = error.response?.data?.message || "Error loading user";
+//     });
+// }
 
 async function getTicketsForSprint(sprintId) {
   await TicketServices.getTicketsForSprint(sprintId)
@@ -102,9 +124,10 @@ async function updateTicket(ticket) {
 }
 
 function setProject(projectId){
-  currentProject.value = projects.value.find(project => project.id === projectId);
-  currentSprint.value = null;
-  getBoardStatusesForProject(projectId);
+  // currentProject.value = projects.value.find(project => project.id === projectId);
+  // currentSprint.value = null;
+  // getBoardStatusesForProject(projectId);
+  emit('select-project', projectId);
 }
 
 function dragStart(ticket){
@@ -119,7 +142,7 @@ function addTicket(status){
   console.log(currentSprint.value);
   const newTicket = {
     statusId: status.id,
-    projectId: currentProject.value.id,
+    projectId: props.activeProject.id,
     sprintId: currentSprint.value,
   };
   openModal(newTicket, true);
@@ -134,23 +157,27 @@ function addTicket(status){
       <div class="d-flex ga-4">
         
         <v-select
-          v-if="currentProject?.projectSprints"
+          v-if="props.activeProject?.projectSprints"
           v-model="currentSprint"
           label="Sprint"
-          :items="currentProject.projectSprints"
+          :items="props.activeProject.projectSprints"
           item-title="name"
           item-value="id"
           @update:model-value="getTicketsForSprint"
+          placeholder="Select a sprint"
+          no-data-text="No sprints found"
         >
   
         </v-select>
         <v-select
-          v-model="currentProject"
+          :model-value="props.activeProject"
           label="Project"
-          :items="projects"
+          :items="props.projects"
           item-title="name"
-          item-value="id"
+          return-object
           @update:model-value="setProject"
+          placeholder="Select a project"
+          no-data-text="No projects found"
         >
   
         </v-select>

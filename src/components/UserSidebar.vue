@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
 import UserServices from "../services/UserServices";
 import ocLogo from "/oc_logo.png";
+import projectServices from "../services/projectServices";
 
 const user = ref(null);
 const router = useRouter();
@@ -11,17 +12,15 @@ const title = ref("SprintBoard");
 const sidebarHeader = ref('sidebar-header')
 const logoutButton = ref('logout-button');
 const avatarOutline = ref('avatar-outline');
-const sessionExpirationTime = computed(() => {
-  const expireDate = new Date(user.value.sessionExpireDate);
-  return expireDate.toLocaleTimeString(navigator.language, {
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-});
+const hideSelect = ref('hide-select');
+
+const props = defineProps(['projects', 'selectedProject']);
+const emit = defineEmits(['update:selectedProject']);
 
 onMounted(async () => {
   logoURL.value = ocLogo;
   user.value = JSON.parse(localStorage.getItem("user"));
+  console.log(user);
 });
 
 function logout() {
@@ -36,7 +35,6 @@ function logout() {
   user.value = null;
   router.push({ name: "login" });
 }
-
 </script>
 
 <template>
@@ -55,18 +53,56 @@ function logout() {
         <h3 class="text-white font-weight-bold">{{ title }}</h3>
       </div>
   
+      <div id="workingIn">Project</div>
+      <v-select
+        :model-value="selectedProject"
+        @update:model-value="val => emit('update:selectedProject', val)"
+        :items="projects"
+        item-title="name"
+        return-object
+        class="mx-5 mt-2 flex-grow-0"
+        :class="hideSelect"
+        color="#2E4DC9"
+        bg-color="#DEE6FA"
+        rounded="lg"
+        density="compact"
+        variant="outlined"
+        placeholder="Select a project"
+        no-data-text="No projects found"
+        menu-icon="none"
+        append-inner-icon="mdi-chevron-down"
+      >
+        <template #selection="{item}">
+          <span style="color: #2E4DC9; font-weight: 500">{{ item.title }}</span>
+        </template>
+      </v-select>
+
       <div id="navLinks" class="d-flex ga-2 flex-column">
         <v-list-item :to="{ name: 'myTasks' }" class="mx-3 rounded-lg" active-class="active-tab">
           <div class="d-flex ga-3 align-center">
-            <v-icon>mdi-order-bool-ascending-variant</v-icon>
-            <span>My Tasks</span>
+            <v-icon>mdi-view-dashboard-outline</v-icon>
+            <span>Overview</span>
           </div>
         </v-list-item>
 
           <v-list-item class="mx-3 rounded-lg" active-class="active-tab">
           <div class="d-flex ga-3 align-center">
             <v-icon>mdi-rocket-launch-outline</v-icon>
-            <span>Current Sprint</span>
+            <span>Sprints</span>
+          </div>
+        </v-list-item>
+
+        <v-list-item class="mx-3 rounded-lg" active-class="active-tab">
+          <div class="d-flex ga-3 align-center">
+            <v-icon>mdi-clipboard-text-outline</v-icon>
+            <span>Backlog</span>
+          </div>
+        </v-list-item>
+
+        <v-list-item class="mx-3 rounded-lg" active-class="active-tab">
+          <div class="d-flex ga-3 align-center">
+            <v-icon>mdi-folder-open-outline</v-icon>
+            <span>My Projects</span>
           </div>
         </v-list-item>
 
@@ -100,10 +136,6 @@ function logout() {
             </div>
           </div>
 
-          <div id="sessionExpiration">
-            <span>Session expires {{ sessionExpirationTime }}</span>
-          </div>
-
           <div id="logout">
             <v-btn
               variant="flat"
@@ -129,6 +161,27 @@ function logout() {
   margin-top: 1.2rem;
 }
 
+#workingIn, #thisProject, #workspace {
+  text-transform: uppercase; 
+  font-weight: 600; 
+  font-size: small;
+  letter-spacing: 4%;
+  margin-left: 1.2rem;
+}
+
+#workingIn {
+  color: rgb(128, 128, 128);
+  margin-top: 0.7rem;
+}
+
+#thisProject, #workspace {
+  color: rgb(143, 143, 143);
+}
+
+#thisProject {
+  margin-bottom: 0.4rem;
+}
+
 #userProfile {
   border-top: 1px solid rgb(211, 205, 205, 0.6);
   margin-bottom: 0.6rem;
@@ -140,7 +193,7 @@ function logout() {
   border-radius: 50%;
 }
 
-#userRole, #sessionExpiration {
+#userRole {
   font-size: x-small;
   color: rgb(73, 71, 71);
 }
@@ -151,11 +204,18 @@ function logout() {
   text-transform: capitalize;
   border: 1px solid rgb(211, 205, 205);
   border-radius: 8px;
+  margin-top: 0.2rem;
 }
 
 .active-tab {
   background-color: rgb(222, 230, 250, 0.3);
   color: #2E4DC9;
   font-weight: 600;
+}
+
+.hide-select {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>

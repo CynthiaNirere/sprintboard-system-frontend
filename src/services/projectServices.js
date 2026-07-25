@@ -7,6 +7,9 @@ export default {
   getProject(id) {
     return apiClient.get("projects/" + id);
   },
+  getUserProjects(userId) {
+    return apiClient.get("projects/user/" + userId);
+  },
   addProject(project) {
     return apiClient.post("projects", project);
   },

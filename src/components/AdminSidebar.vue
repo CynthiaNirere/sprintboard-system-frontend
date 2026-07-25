@@ -12,7 +12,6 @@ const sidebarHeader = ref('sidebar-header')
 const logoutButton = ref('logout-button');
 const avatarOutline = ref('avatar-outline');
 const hideSelect = ref('hide-select');
-
 const props = defineProps(['projects', 'selectedProject']);
 const emit = defineEmits(['update:selectedProject']);
 
@@ -33,13 +32,17 @@ function logout() {
   user.value = null;
   router.push({ name: "login" });
 }
+
+function formatRole(role) {
+  return role.charAt(0).toUpperCase() + role.substring(1).toLowerCase();
+}
 </script>
 
 <template>
   <v-navigation-drawer permanent>
     <div class="d-flex flex-column fill-height">
       <div :class="sidebarHeader" class="d-flex ga-4 px-4 align-center">
-        <router-link :to="{ name: user?.globalRole === 'ADMIN' ? 'overview' : 'myTasks' }">
+        <router-link :to="{ name: user?.globalRole === 'ADMIN' ? 'adminOverview' : 'userOverview' }">
           <v-img
             class="mx-2"
             :src="logoURL"
@@ -78,13 +81,13 @@ function logout() {
       <div id="thisProject">This Project</div>
 
       <div id="navLinks" class="d-flex ga-2 flex-column flex-grow-1 overflow-y-auto">
-        <v-list-item :to="{ name: 'overview' }" class="mx-3 rounded-lg" active-class="active-tab">
+        <v-list-item :to="{ name: 'adminOverview' }" class="mx-3 rounded-lg" active-class="active-tab">
           <div class="d-flex ga-3 align-center">
             <v-icon>mdi-view-dashboard-outline</v-icon>
             <span>Overview</span>
           </div>
         </v-list-item>
-        
+
         <v-list-item class="mx-3 rounded-lg" active-class="active-tab">
           <div class="d-flex ga-3 align-center">
             <v-icon>mdi-rocket-launch-outline</v-icon>
@@ -124,14 +127,14 @@ function logout() {
 
         <div id="workspace">Workspace</div>
 
-        <v-list-item :to="{ name: 'projects' }" class="mx-3 rounded-lg" active-class="active-tab">
+        <v-list-item :to="{ name: 'adminProjects' }" class="mx-3 rounded-lg" active-class="active-tab">
           <div class="d-flex ga-3 align-center">
             <v-icon>mdi-folder-open-outline</v-icon>
             <span>Projects</span>
           </div>
         </v-list-item>
         
-        <v-list-item :to="{ name: 'projects' }" class="mx-3 rounded-lg" active-class="active-tab">
+        <v-list-item class="mx-3 rounded-lg" active-class="active-tab">
           <div class="d-flex ga-3 align-center">
             <v-icon>mdi-account-multiple-outline</v-icon>
             <span>Users</span>
@@ -146,9 +149,9 @@ function logout() {
         </v-list-item>
       </div>
       
-      <div id="userProfile" class="mt-4">
+      <div v-if="user" id="userProfile" class="mt-4">
         <div class="d-flex flex-column mt-4 mx-4 ga-2">
-          
+
           <div id="userInfo" class="d-flex ga-4 align-center">
             <div id="userInitials">
               <v-avatar :class="avatarOutline" class="mx-auto text-center" color="#1740E3" size="small">
@@ -157,13 +160,12 @@ function logout() {
                 }}</span>
               </v-avatar>
             </div>
-            
             <div class="d-flex flex-column">
               <div class="font-weight-bold">
                 {{ user.firstName }} {{ user.lastName }}
               </div>
               <div id="userRole">
-                {{ user.globalRole }}
+                {{ formatRole(user.globalRole) }}
               </div>
             </div>
           </div>

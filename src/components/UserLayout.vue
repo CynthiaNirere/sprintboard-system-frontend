@@ -1,9 +1,11 @@
 <script setup>
 import { onMounted, ref } from "vue";
 import UserSidebar from "./UserSidebar.vue";
-import MenuBar from "../components/MenuBar.vue";
+import projectServices from "../services/projectServices.js";
 
 const user = ref(null);
+const projects = ref([]);
+const currentProject = ref(null);
 
 const snackbar = ref({
   value: false,
@@ -13,16 +15,40 @@ const snackbar = ref({
 
 onMounted(async () => {
   user.value = JSON.parse(localStorage.getItem("user"));
+  await getMyProjects();
 });
+
+async function getMyProjects() {
+  await projectServices.getUserProjects(user.value.id)
+    .then((response) => {
+      projects.value = response.data;
+      if (projects.value.length > 0) {
+        currentProject.value = projects.value[0];
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+      projects.value = [];
+      snackbar.value = true;
+      snackbar.value.color = "error";
+      snackbar.value.text = error.response?.data?.message || "Error loading projects for user.";
+    });
+}
 </script>
 
 <template>
   <div class="d-flex">
-    <UserSidebar />
+    <UserSidebar 
+      :projects="projects"
+      v-model:selectedProject="currentProject"    
+    />
     <div id="main-content" class="flex-grow-1">
       <div class="d-flex flex-column">
-        <MenuBar />
-        <router-view />
+        <router-view
+          :active-project="currentProject"
+          :projects="projects"
+          @select-project="(project) => currentProject = project"        
+        />
       </div>
     </div>
   </div>

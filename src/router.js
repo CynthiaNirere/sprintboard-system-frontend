@@ -65,6 +65,11 @@ const router = createRouter({
           component: () => import("./views/Profile.vue"),
         },
         {
+          path: "sprints",
+          name: "adminSprints",
+          component: () => import("./views/Sprints.vue"),
+        },
+        {
           path: "backlog",
           name: "backlog",
           component: () => import("./views/BacklogView.vue"),
@@ -102,6 +107,11 @@ const router = createRouter({
           name: "userBacklog",
           component: () => import("./views/BacklogView.vue"),
             },
+        {
+          path: "sprints",
+          name: "sprints",
+          component: () => import("./views/Sprints.vue"),
+        },
       ]
     },
     {

@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
+import { useRouter } from "vue-router";
 import UserServices from "../services/UserServices";
 import ocLogo from "/oc_logo.png";
 
@@ -11,6 +12,7 @@ const logoutButton = ref('logout-button');
 const avatarOutline = ref('avatar-outline');
 const hideSelect = ref('hide-select');
 const props = defineProps(['projects', 'selectedProject']);
+const router = useRouter();
 
 onMounted(async () => {
   logoURL.value = ocLogo;
@@ -92,7 +94,7 @@ function formatRole(role) {
           </div>
         </v-list-item>
 
-        <v-list-item class="mx-3 rounded-lg" active-class="active-tab">
+        <v-list-item :to="{ name: 'projectAdminSprints' }" class="mx-3 rounded-lg" active-class="active-tab">
           <div class="d-flex ga-3 align-center">
             <v-icon>mdi-rocket-launch-outline</v-icon>
             <span>Sprints</span>

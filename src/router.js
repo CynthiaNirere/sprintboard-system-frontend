@@ -99,7 +99,7 @@ const router = createRouter({
       ]
     },
     {
-      path: "/projectAdmin/:id",
+      path: "/project-admin/:id",
       name: "projectAdminLayout",
       component: () => import("./components/ProjectAdminLayout.vue"),
       children: [
@@ -107,6 +107,11 @@ const router = createRouter({
           path: "storyboard",
           name: "projectAdminOverview",
           component: () => import("./views/Storyboard.vue"),
+        },
+        {
+          path: "sprints",
+          name: "projectAdminSprints",
+          component: () => import("./views/Sprints.vue")
         }
       ],
     }

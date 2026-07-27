@@ -226,6 +226,25 @@ async function deleteSprint() {
       isDeleting.value = false;
     });
 }
+function parseLocalDate(dateString) {
+  const dateOnly = dateString.split("T")[0]; // "2026-08-03"
+  const [year, month, day] = dateOnly.split("-");
+
+  return new Date(
+    Number(year),
+    Number(month) - 1,
+    Number(day)
+  );
+}
+
+function displayDate(dateString) {
+  const date = parseLocalDate(dateString);
+
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+}
 
 </script>
 
@@ -279,7 +298,7 @@ async function deleteSprint() {
           </div>
           
           <p class="text-caption text-medium-emphasis">
-            {{ new Date(sprint.startDate).toLocaleDateString('en-US', {month: 'short',day: 'numeric'}) || "No start date" }} - {{ new Date(sprint.endDate).toLocaleDateString('en-US', {month: 'short',day: 'numeric'}) || "No end date" }}
+            {{ displayDate(sprint.startDate) || "No start date" }} - {{ displayDate(sprint.endDate) || "No end date" }}
           </p>
           <v-row class="ma-1" ">
               <v-progress-linear color="blue-lighten-3" :model-value="sprintCompletion[sprint.id]?.percentage ?? 0"></v-progress-linear>

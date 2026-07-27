@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import ProjectServices from "../services/projectServices.js";
-import SprintServices from "../services/sprintServices.js";
+import SprintServices from "../services/BacklogServices.js";
 
 const projects = ref([]);
 const selectedProject = ref(null);

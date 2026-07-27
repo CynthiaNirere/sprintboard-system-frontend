@@ -83,6 +83,11 @@ const router = createRouter({
           name: "profile",    
           component: () => import("./views/Profile.vue")
         },
+        {
+          path: "backlog",
+          name: "backlog",
+          component: () => import("./views/BacklogView.vue"),
+        },
 
       ]
     },
@@ -102,6 +107,11 @@ const router = createRouter({
       name: "userProfile",
       component: () => import("./views/Profile.vue"),
     },
+        {
+          path: "backlog",
+          name: "userBacklog",
+          component: () => import("./views/BacklogView.vue"),
+        },
       ]
     },
     {
@@ -146,6 +156,14 @@ const router = createRouter({
       component: () => import("./views/Confirmation.vue"),
     },
 ],
+});
+
+router.beforeEach((to, from, next) => {
+  if (to.path.startsWith("/admin")) {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    if (user.globalRole !== "ADMIN") return next({ name: "myTasks" });
+  }
+  next();
 });
 
 export default router;

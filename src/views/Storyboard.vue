@@ -33,17 +33,21 @@ function openModal(ticket, isAdd) {
 onMounted(async () => {
   user.value = JSON.parse(localStorage.getItem("user"));
   await getProjectsForUser();
-  await getBoardStatusesForProject(currentProject.value.id);
-  if(currentSprint.value)
-    await getTicketsForSprint(currentSprint.value);
+  if (currentProject.value) {
+    await getBoardStatusesForProject(currentProject.value.id);
+    if (currentSprint.value)
+      await getTicketsForSprint(currentSprint.value);
+  }
 });
 
 async function getProjectsForUser(){
   await UserServices.getUserById(user.value.id)
     .then((response) => {
-      projects.value = response.data.projects;
-      currentProject.value = projects.value[0];
-      currentSprint.value = currentProject.value.projectSprints[0].id;
+      projects.value = response.data.projects || [];
+      if (projects.value.length > 0) {
+        currentProject.value = projects.value[0];
+        currentSprint.value = currentProject.value.projectSprints?.[0]?.id || null;
+      }
     })
     .catch((error) => {
       console.log(error);
@@ -126,7 +130,7 @@ function addTicket(status){
 
 <template>
   <v-container>
-    <div id="body">
+    <div id="body" v-if="currentProject">
       <div class="d-flex ga-4">
         
         <v-select
@@ -162,6 +166,10 @@ function addTicket(status){
         </v-card>
       </div>
     </div>
+
+    <v-card v-else class="rounded-lg elevation-2 pa-8 text-center text-medium-emphasis ma-4">
+      You haven't been added to any projects yet. Ask a project admin to add you as a team member.
+    </v-card>
 
     <v-snackbar v-model="snackbar.value" rounded="pill">
       {{ snackbar.text }}

@@ -119,8 +119,8 @@ async function submitModal() {
     await getSprints();
   }
   else if(!currentSprint.value.count || !currentSprint.value.lengthDays){
-      currentSprint.value.lengthDays = parseInt(currentSprint.value.lengthDays);
-      currentSprint.value.count = parseInt(currentSprint.value.count);
+      currentSprint.value.lengthDays = Number(currentSprint.value.lengthDays);
+      currentSprint.value.count = Number(currentSprint.value.count);
       isCreating.value = true;
       if(currentSprint.value.lengthDays){
         const end = new Date(currentSprint.value.startDate);
@@ -148,6 +148,9 @@ async function submitModal() {
           isCreating.value = false;
         });
   }else{
+    currentSprint.value.lengthDays = Number(currentSprint.value.lengthDays);
+    currentSprint.value.count = Number(currentSprint.value.count);
+    isCreating.value = true;
     await SprintServices.addRecurringSprints(currentSprint.value)
         .then(() => {
           showModal.value = false;

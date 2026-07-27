@@ -6,18 +6,17 @@ import projectServices from "../services/projectServices.js";
 const user = ref(null);
 const users = ref([]);
 const search = ref("");
-const projects = ref([]);
 const props = defineProps(['activeProject', 'projects']);
-// const emit = defineEmits(['select-project']);
-const projectMember = ref(null);
 const projectMembers = ref([]);
+const newProjectMember = ref({
+  userId: null,
+  projectRole: "DEVELOPER"
+});
 
-const adminChip = ref('admin-chip');
-const userChip = ref('user-chip');
 const userSearchBar = ref('user-search-bar');
 const pageHeader = ref('page-header');
-const selectGlobalRole = ref('select-global-role');
 const selectProjectRole = ref('select-project-role');
+const selectUser = ref('select-user');
 const avatarOutline = ref('avatar-outline');
 
 const snackbar = ref({
@@ -55,25 +54,9 @@ async function getUsers() {
     });
 }
 
-async function updateUser(user) {
-  await UserServices.updateUser(user.value.id, user.value)
-    .then((response) => {
-      snackbar.value.value = true;
-      snackbar.value.color = "green";
-      snackbar.value.text = `User ${user.value.id} updated successfully!`;
-    })
-    .catch((error) => {
-      console.log(error);
-      snackbar.value.value = true;
-      snackbar.value.color = "error";
-      snackbar.value.text = error.response?.data?.message || "Error loading user";
-    });
-}
-
 async function getProjectMembers(projectId) {
   await projectServices.getProjectMembers(projectId)
     .then((response) => {
-      console.log('Project members response is: ', response.data);
       projectMembers.value = response.data;
     })
     .catch((error) => {
@@ -85,29 +68,39 @@ async function getProjectMembers(projectId) {
     });
 }
 
-async function addProjectMember(projectMember) {
-  await projectServices.addProjectMember(projectMember.value)
+async function addProjectMember() {
+  if (!newProjectMember.value) {
+    snackbar.value.value = true;
+    snackbar.value.color = "error";
+    snackbar.value.text = "You must select a user first!"; 
+  }
+
+  await projectServices.addProjectMember(props.activeProject.id, newProjectMember.value)
     .then(() => {
       snackbar.value.value = true;
       snackbar.value.color = "green";
-      snackbar.value.text = `User ${projectMember.value.userId} added to project successfully!`;
+      snackbar.value.text = `User ${newProjectMember.value.userId} added to project ${props.activeProject.id} successfully!`;
+      newProjectMember.value.userId = null;
+      newProjectMember.value.projectRole = "DEVELOPER";
+      search.value = "";
     })
     .catch((error) => {
       console.log(error);
       snackbar.value.value = true;
       snackbar.value.color = "error";
-      snackbar.value.text = error.response.data.message;
+      snackbar.value.text = error.response.data.message || `Error adding user ${newProjectMember.value.userId} to project ${props.activeProject.id}.`;
     });
+
   await getProjectMembers(props.activeProject.id);
 }
 
 async function updateProjectMember(userId, updatedRole) {
-  const data = {
+  const projectMemberData = {
     userId: userId,
     projectRole: updatedRole
   };
 
-  await projectServices.updateProjectMember(props.activeProject.id, data)
+  await projectServices.updateProjectMember(props.activeProject.id, projectMemberData)
     .then(() => {
       snackbar.value.value = true;
       snackbar.value.color = "green";
@@ -119,34 +112,58 @@ async function updateProjectMember(userId, updatedRole) {
       snackbar.value.color = "error";
       snackbar.value.text = error.response.data.message || `Error updating role for user ${userId}`;
     });
+
   await getProjectMembers(props.activeProject.id);
 }
 
-async function deleteProjectMember() {
-  await projectServices.deleteProjectMember()
+async function deleteProjectMember(userId) {
+  await projectServices.deleteProjectMember(props.activeProject.id, userId)
     .then(() => {
       snackbar.value.value = true;
       snackbar.value.color = "green";
-      snackbar.value.text = `User ${userId} deleted successfully from project ${currentProject.value.projectId}!`;
+      snackbar.value.text = `User ${userId} removed successfully from project ${currentProject.value.projectId}!`;
     })
     .catch((error) => {
       console.log(error);
       snackbar.value.value = true;
       snackbar.value.color = "error";
-      snackbar.value.text = error.response.data.message;
+      snackbar.value.text = error.response.data.message || `Error removing user ${userId} from project ${props.activeProject.id}.`;
     });
+
   await getProjectMembers(props.activeProject.id);
 }
 
-function setProject(projectId){
-  emit('select-project', projectId);
-}
-
 const filteredUsers = computed(() => {
-  if (!search.value) return users.value;
-  return users.value.filter(user =>
-    user.firstName && user.lastName && user.email.toLowerCase().includes(user.value.toLowerCase())
+  const availableProjectMembers = users.value.filter(user =>
+    !projectMembers.value.some(projectMember => projectMember.id === user.id)
   );
+
+  if (!search.value) return availableProjectMembers;
+
+  const searchInput = search.value.toLowerCase();
+  return availableProjectMembers.filter(user => {
+    const userFullName = `${user.firstName} ${user.lastName}`.toLowerCase();
+    const userEmail = `${user.email}`.toLowerCase();
+    return userFullName.includes(searchInput) || userEmail.includes(searchInput);
+  });
+});
+
+watch(filteredUsers, (updatedList) => {
+  if (updatedList.length > 0) {
+    if (!search.value) {
+      newProjectMember.value.userId = updatedList[0].id;
+    }
+
+    else {
+      const selectedUserInList = updatedList.some(user => user.id === newProjectMember.value.userId);
+      if (!selectedUserInList) {
+        newProjectMember.value.userId = updatedList[0].id;
+      }
+    }
+  }
+  else {
+    newProjectMember.value.userId = null;
+  }
 });
 
 function formatRole(role) {
@@ -167,10 +184,6 @@ function formatRole(role) {
   else {
     return role.charAt(0).toUpperCase() + role.substring(1).toLowerCase();
   }
-}
-
-function isUserAdmin(role) {
-  return role === "ADMIN";
 }
 
 function isUserProjectAdmin(role) {
@@ -242,7 +255,7 @@ function isUserProjectAdmin(role) {
                     </div>
 
                     <div>
-                      <div id="delete-background" class="d-flex justify-center align-center">
+                      <div id="delete-background" class="d-flex justify-center align-center" @click="deleteProjectMember(projectMember.id)">
                         <v-icon id="checkmark" size="20" color="red">
                           mdi-account-minus-outline
                         </v-icon>
@@ -258,7 +271,7 @@ function isUserProjectAdmin(role) {
       
       <v-text-field
         v-model="search"
-        label="Search users to add..."
+        placeholder="Search users by name or email to add..."
         prepend-inner-icon="mdi-magnify"
         variant="plain"
         density="compact"
@@ -271,22 +284,27 @@ function isUserProjectAdmin(role) {
         <div class="d-flex w-50 ga-3 mt-6 align-center">
           <div>
             <v-select
-              :items="['PROJECT_ADMIN', 'DEVELOPER']"
-              :item-title="item => formatRole(item)"
+              v-model="newProjectMember.userId"
+              :items="filteredUsers"
+              :item-title="item => (item.firstName && item.lastName) ? `${item.firstName} ${item.lastName}` : item.email"
+              item-value="id"
               density="compact"
               variant="flat"
               hide-details
               bg-color="white"
               rounded="lg"
-              :class="selectProjectRole"
+              :class="selectUser"
               :menu-icon="null"
               append-inner-icon="mdi-chevron-down"
+              placeholder="Select a user"
+              no-data-text="No users found"
             >
             </v-select>
           </div>
 
           <div>
             <v-select
+              v-model="newProjectMember.projectRole"
               :items="['PROJECT_ADMIN', 'DEVELOPER']"
               :item-title="item => formatRole(item)"
               density="compact"
@@ -308,6 +326,7 @@ function isUserProjectAdmin(role) {
               style="background-color: #F4F4F4;"
               rounded="lg"
               prepend-icon="mdi-plus"
+              @click="addProjectMember()"
             >
               Add to project
             </v-btn>
@@ -345,20 +364,6 @@ function isUserProjectAdmin(role) {
   border-radius: 50%;
 }
 
-.status {
-  background-color: #FAF9F6;
-  display: flex;
-  flex-direction: column;
-}
-
-.admin-chip {
-  text-transform: lowercase;
-}
-
-.user-chip {
-  text-transform: lowercase;
-}
-
 .user-search-bar {
   width: 30%;
   background-color: white;
@@ -366,16 +371,17 @@ function isUserProjectAdmin(role) {
   border-radius: 10px;
 }
 
-.select-global-role {
-  width: 120px;
-  color: white;
-}
-
-.select-project-role {
+.select-user, .select-project-role {
   width: 170px;
   color: white;
   border: 1px solid rgba(153, 153, 153, 0.658);
   border-radius: 8px;
+}
+
+.select-user {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #delete-background {

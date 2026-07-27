@@ -74,6 +74,7 @@ const router = createRouter({
           name: "adminSprints",
           component: () => import("./views/Sprints.vue"),
         },
+
       ]
     },
     {
@@ -88,11 +89,6 @@ const router = createRouter({
           component: () => import("./views/Storyboard.vue"),
         },
         {
-          path: "projects",
-          name: "myProjects",
-          component: () => import("./views/MyProjects.vue"),
-        },
-        {
           path: "profile",
           name: "userProfile",
           component: () => import("./views/Profile.vue"),
@@ -103,11 +99,21 @@ const router = createRouter({
           component: () => import("./views/BacklogView.vue"),
         },
         {
-          path: "sprints",
-          name: "sprints",
-          component: () => import("./views/Sprints.vue"),
+          path: "backlog",
+          name: "userBacklog",
+          component: () => import("./views/BacklogView.vue"),
         },
       ]
+    },
+    {
+      path: "/admin/dashboard",
+      name: "adminDashboard",
+      component: () => import("./views/AdminDashboard.vue"),
+    },
+    {
+      path: "/shows/:id/events/:eventId/seatmap",
+      name: "seatmap",
+      component: () => import("./views/SeatMap.vue"),
     },
     {
       path: "/project-admin/:id",

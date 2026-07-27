@@ -63,7 +63,6 @@ function formatRole(role) {
         return-object
         class="mx-5 mt-2 flex-grow-0"
         :class="hideSelect"
-        color="#2E4DC9"
         bg-color="#DEE6FA"
         rounded="lg"
         density="compact"

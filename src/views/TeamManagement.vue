@@ -18,6 +18,7 @@ const userSearchBar = ref('user-search-bar');
 const pageHeader = ref('page-header');
 const selectGlobalRole = ref('select-global-role');
 const selectProjectRole = ref('select-project-role');
+const avatarOutline = ref('avatar-outline');
 
 const snackbar = ref({
   value: false,
@@ -171,26 +172,31 @@ function formatRole(role) {
 function isUserAdmin(role) {
   return role === "ADMIN";
 }
+
+function isUserProjectAdmin(role) {
+  return role === "PROJECT_ADMIN";
+}
 </script>
 
 <template>
   <v-container>
     <div id="body">
-
       <h3 :class="pageHeader">Team Management & Roles</h3>
-
+      <p class="mt-2 mb-4 font-weight-light" style="color:rgba(101, 101, 101)">Manage who's on Test Project and their project role (Project Admin/Developer).
+        To create a brand-new user account, go to Users under Workspace.
+      </p>
       <span class="text-uppercase font-weight-bold" style="font-size: smaller; color: rgba(95, 95, 85, 0.92); letter-spacing: 2%;">{{ props.activeProject?.name }} Members</span>
-      
-      <p class="mt-2 mb-4" style="color:rgba(95, 95, 85, 0.92)">Project Admins can add users to this project and set their project role.
+      <p class="mt-2 mb-4 font-weight-light" style="color:rgba(101, 101, 101)">Project Admins can add existing users to this project and set their
+        project role.
       </p>
       
-      <v-card class="rounded-lg mt-4 mb-6">
+      <v-card class="rounded-lg mt-4 mb-6 border-thin" variant="flat">
         <v-table>
           <tbody>
             <tr v-for="projectMember in projectMembers" :key="projectMember.id">
               <td>
-                <div class="d-flex justify-space-between">
-                  <div id="firstHalf" class="d-flex align-center ga-4 py-2 ml-2">
+                <div class="d-flex justify-space-between py-2">
+                  <div class="d-flex align-center ga-4 py-2 ml-2">
                     <div id="userInitials">
                       <v-avatar :class="avatarOutline" class="mx-auto text-center" color="#1740E3" size="small">
                         <span class="white--text font-weight-bold">{{
@@ -205,10 +211,10 @@ function isUserAdmin(role) {
                     </div>
                   </div>
                   
-                  <div id="secondHalf" class="d-flex align-center ga-4 py-2 mr-2">
+                  <div class="d-flex align-center ga-4 py-2 mr-2">
                     <div>
                       <v-chip 
-                        :class="isUserAdmin(projectMember.globalRole) ? 'bg-blue-lighten-4' : 'bg-grey-lighten-2'"
+                        :style="isUserProjectAdmin(projectMember.project_member.projectRole) ? 'background-color: #EFE6FC; color: #5D3CA6' : 'background-color: #DEE6FA; color: #2E4DC9'"
                         class="font-weight-bold px-3"
                         size="small"
                         variant="flat"
@@ -223,21 +229,20 @@ function isUserAdmin(role) {
                         :items="['PROJECT_ADMIN', 'DEVELOPER']"
                         :item-title="item => formatRole(item)"
                         density="compact"
-                        variant="solo"
+                        variant="flat"
                         hide-details
-                        flat
-                        bg-color="#E4E4E4"
+                        bg-color="white"
                         rounded="lg"
                         :class="selectProjectRole"
                         :menu-icon="null"
-                        append-inner-icon="mdi-unfold-more-horizontal"
+                        append-inner-icon="mdi-chevron-down"
                         @update:modelValue="updateProjectMember(projectMember.id, $event)"
                       >
                       </v-select>
                     </div>
 
                     <div>
-                      <div id="checkmark-background" class="d-flex justify-center align-center">
+                      <div id="delete-background" class="d-flex justify-center align-center">
                         <v-icon id="checkmark" size="20" color="red">
                           mdi-account-minus-outline
                         </v-icon>
@@ -251,15 +256,9 @@ function isUserAdmin(role) {
         </v-table>
       </v-card>
       
-      <p class="mb-4" style="color:rgba(95, 95, 85, 0.92)">Global role (Admin/User) controls workspace access. Project role (Project Admin/Developer)
-          is set per-project - the same person can hold different roles on different projects.
-      </p>
-
-      <span class="text-uppercase font-weight-bold" style="font-size: smaller; color: rgba(95, 95, 85, 0.92); letter-spacing: 2%;">All Users</span>
-
       <v-text-field
         v-model="search"
-        label="Search users by name or email"
+        label="Search users to add..."
         prepend-inner-icon="mdi-magnify"
         variant="plain"
         density="compact"
@@ -268,74 +267,54 @@ function isUserAdmin(role) {
         class="my-2 pb-2 pl-2"
         :class="userSearchBar"
         ></v-text-field>    
-      
-      <v-card class="rounded-lg mt-4 mb-6">
-        <v-table>
-          <tbody>
-            <tr v-for="user in users" :key="user.id">
-              <td>
-                <div class="d-flex justify-space-between">
-                  <div id="firstHalf" class="d-flex align-center ga-4 py-2 ml-2">
-                    <div id="userInitials">
-                      <v-avatar :class="avatarOutline" class="mx-auto text-center" color="#1740E3" size="small">
-                        <span class="white--text font-weight-bold">{{
-                          `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`
-                        }}</span>
-                      </v-avatar>
-                    </div>
-                    <div class="d-flex flex-column">
-                      <div class="font-weight-bold">
-                        {{ user.firstName }} {{ user.lastName }}
-                      </div>
-                      <div style="color:rgba(95, 95, 85, 0.92)">
-                        {{ user.email }}
-                      </div>
-                    </div>
-                  </div>
-  
-                  <div id="secondHalf" class="d-flex align-center ga-4 py-2 mr-2">
-                    <div>
-                      <div style="color:rgba(80, 80, 80)">
-                        {{ activeTasks || 0 }} active tasks
-                      </div>
-                    </div>
-  
-                    <div>
-                      <v-chip 
-                        :class="isUserAdmin(user.globalRole) ? 'bg-blue-lighten-4' : 'bg-grey-lighten-2'"
-                        class="font-weight-bold px-3"
-                        size="small"
-                        variant="flat"
-                      >
-                        {{ formatRole(user.globalRole) }}
-                      </v-chip>
-                    </div>
-  
-                    <div>
-                      <v-select
-                        v-model="user.globalRole"
-                        :items="['ADMIN', 'USER']"
-                        :item-title="item => formatRole(item)"
-                        density="compact"
-                        variant="solo"
-                        hide-details
-                        flat
-                        bg-color="#E4E4E4"
-                        rounded="lg"
-                        :class="selectGlobalRole"
-                        :menu-icon="null"
-                        append-inner-icon="mdi-unfold-more-horizontal"
-                        @update:modelValue="updateUser({ value: user })"
-                      >
-                      </v-select>
-                    </div>
-                  </div>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </v-table>
-      </v-card>
+
+        <div class="d-flex w-50 ga-3 mt-6 align-center">
+          <div>
+            <v-select
+              :items="['PROJECT_ADMIN', 'DEVELOPER']"
+              :item-title="item => formatRole(item)"
+              density="compact"
+              variant="flat"
+              hide-details
+              bg-color="white"
+              rounded="lg"
+              :class="selectProjectRole"
+              :menu-icon="null"
+              append-inner-icon="mdi-chevron-down"
+            >
+            </v-select>
+          </div>
+
+          <div>
+            <v-select
+              :items="['PROJECT_ADMIN', 'DEVELOPER']"
+              :item-title="item => formatRole(item)"
+              density="compact"
+              variant="flat"
+              hide-details
+              bg-color="white"
+              rounded="lg"
+              :class="selectProjectRole"
+              :menu-icon="null"
+              append-inner-icon="mdi-chevron-down"
+            >
+            </v-select>
+          </div>
+        
+          <div>
+            <v-btn
+              variant="flat"
+              class="border-thin d-flex justify-center align-center px-4 py-6 text-none"
+              style="background-color: #F4F4F4;"
+              rounded="lg"
+              prepend-icon="mdi-plus"
+            >
+              Add to project
+            </v-btn>
+          </div>
+        
+        </div>
+
     </div>
 
     <v-snackbar v-model="snackbar.value" rounded="pill">
@@ -350,50 +329,59 @@ function isUserAdmin(role) {
 </template>
 
 <style scoped>
-  #body {
-    padding: 1rem;
-  }
+#body {
+  padding-top: 1rem;
+  width: 100%;
+}
 
-  .page-header {
-    letter-spacing: 2%;
-    margin-bottom: 0.8rem;
-  }
+.page-header {
+  letter-spacing: 2%;
+  margin-bottom: 0.8rem;
+}
 
-  .status {
-    background-color: #FAF9F6;
-    display: flex;
-    flex-direction: column;
-  }
+.avatar-outline {
+  outline: 1px solid rgb(211, 205, 205);
+  outline-offset: 2px;
+  border-radius: 50%;
+}
 
-  .admin-chip {
-    text-transform: lowercase;
-  }
+.status {
+  background-color: #FAF9F6;
+  display: flex;
+  flex-direction: column;
+}
 
-  .user-chip {
-    text-transform: lowercase;
-  }
+.admin-chip {
+  text-transform: lowercase;
+}
 
-  .user-search-bar {
-    width: 30%;
-    background-color: white;
-    border: 1px solid rgba(153, 153, 153, 0.658);
-    border-radius: 10px;
-  }
+.user-chip {
+  text-transform: lowercase;
+}
 
-  .select-global-role {
-    width: 120px;
-    color: white;
-  }
+.user-search-bar {
+  width: 30%;
+  background-color: white;
+  border: 1px solid rgba(153, 153, 153, 0.658);
+  border-radius: 10px;
+}
 
-  .select-project-role {
-    width: 170px;
-    color: white;
-  }
+.select-global-role {
+  width: 120px;
+  color: white;
+}
 
-  #checkmark-background {
-    background-color: rgba(249, 214, 206, 0.714);
-    border-radius: 25%;
-    width: 30px;
-    height: 30px;
-  }
+.select-project-role {
+  width: 170px;
+  color: white;
+  border: 1px solid rgba(153, 153, 153, 0.658);
+  border-radius: 8px;
+}
+
+#delete-background {
+  background-color: rgba(249, 214, 206, 0.714);
+  border-radius: 25%;
+  width: 30px;
+  height: 30px;
+}
 </style>

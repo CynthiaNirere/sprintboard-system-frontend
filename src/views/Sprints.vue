@@ -271,7 +271,7 @@ function displayDate(dateString) {
 
                 <h2 class="text-h6 font-weight-bold">{{ sprint.name }}</h2>
                 
-                <p class="ml-2 pill " :class="(new Date(sprint.startDate) <= Date.now() && new Date(sprint.endDate) >= Date.now()) ? 'green' : 'blue'"  >{{ (new Date(sprint.startDate) <= Date.now() && new Date(sprint.endDate) >= Date.now()) ? "active" : "not active" }}</p>
+                <p class="ml-2 pill " :class="(parseLocalDate(sprint.startDate) <= new Date() && parseLocalDate(sprint.endDate) >= new Date()) ? 'green' : 'blue'"  >{{ (parseLocalDate(sprint.startDate) <= new Date() && parseLocalDate(sprint.endDate) >= new Date()) ? "active" : "not active" }}</p>
                 
             </div>
             <div>

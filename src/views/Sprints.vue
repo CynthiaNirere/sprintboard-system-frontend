@@ -28,7 +28,7 @@ const nameRules = [(v) => !!v || "Sprint name is required"];
 
 const startDateRules = [(v) => !!v || "Sprint start date is required"];
 
-const endDateRules = [(v) => !!v || "Sprint end datee is required"];
+const endDateRules = [(v) => !!v || "Sprint end date is required"];
 
 const lengthDaysRules = [(v) => !!v || "Sprint length days is required"];
 

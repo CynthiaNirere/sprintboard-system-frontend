@@ -59,6 +59,31 @@ watch(() => props.activeProject, async (newProject) => {
     }
   }
 }, { immediate: true});
+  await getProjectsForUser();
+  if (currentProject.value) {
+    await getBoardStatusesForProject(currentProject.value.id);
+    if (currentSprint.value)
+      await getTicketsForSprint(currentSprint.value);
+  }
+});
+
+async function getProjectsForUser(){
+  await UserServices.getUserById(user.value.id)
+    .then((response) => {
+      projects.value = response.data.projects || [];
+      if (projects.value.length > 0) {
+        currentProject.value = projects.value[0];
+        currentSprint.value = currentProject.value.projectSprints?.[0]?.id || null;
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+      user.value = null;
+      snackbar.value.value = true;
+      snackbar.value.color = "error";
+      snackbar.value.text = error.response?.data?.message || "Error loading user";
+    });
+}
 
 async function getTicketsForSprint(sprintId) {
   await TicketServices.getTicketsForSprint(sprintId)

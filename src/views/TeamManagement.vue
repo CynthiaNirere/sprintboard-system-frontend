@@ -79,7 +79,7 @@ async function addProjectMember() {
     .then(() => {
       snackbar.value.value = true;
       snackbar.value.color = "green";
-      snackbar.value.text = `User ${newProjectMember.value.userId} added to project ${props.activeProject.id} successfully!`;
+      snackbar.value.text = `User ${newProjectMember.value.userId} successfully added to ${props.activeProject.name}!`;
       newProjectMember.value.userId = null;
       newProjectMember.value.projectRole = "DEVELOPER";
       search.value = "";
@@ -88,7 +88,7 @@ async function addProjectMember() {
       console.log(error);
       snackbar.value.value = true;
       snackbar.value.color = "error";
-      snackbar.value.text = error.response.data.message || `Error adding user ${newProjectMember.value.userId} to project ${props.activeProject.id}.`;
+      snackbar.value.text = error.response.data.message || `Error adding user ${newProjectMember.value.userId} to ${props.activeProject.name}.`;
     });
 
   await getProjectMembers(props.activeProject.id);
@@ -121,13 +121,13 @@ async function deleteProjectMember(userId) {
     .then(() => {
       snackbar.value.value = true;
       snackbar.value.color = "green";
-      snackbar.value.text = `User ${userId} removed successfully from project ${currentProject.value.projectId}!`;
+      snackbar.value.text = `User ${userId} successfully removed from ${props.activeProject.name}!`;
     })
     .catch((error) => {
       console.log(error);
       snackbar.value.value = true;
       snackbar.value.color = "error";
-      snackbar.value.text = error.response.data.message || `Error removing user ${userId} from project ${props.activeProject.id}.`;
+      snackbar.value.text = error.response.data.message || `Error removing user ${userId} from ${props.activeProject.name}.`;
     });
 
   await getProjectMembers(props.activeProject.id);
@@ -365,7 +365,7 @@ function isUserProjectAdmin(role) {
 }
 
 .user-search-bar {
-  width: 30%;
+  width: 35%;
   background-color: white;
   border: 1px solid rgba(153, 153, 153, 0.658);
   border-radius: 10px;

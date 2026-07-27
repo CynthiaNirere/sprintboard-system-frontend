@@ -121,7 +121,12 @@ const router = createRouter({
         {
           path: "sprints",
           name: "projectAdminSprints",
-          component: () => import("./views/Sprints.vue")
+          component: () => import("./views/Sprints.vue"),
+        },
+        {
+          path: "team-management",
+          name: "projectAdminTeamManagement",
+          component: () => import("./views/TeamManagement.vue"),
         }
       ],
     }

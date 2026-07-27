@@ -195,8 +195,8 @@ function isUserProjectAdmin(role) {
   <v-container>
     <div id="body">
       <h3 :class="pageHeader">Team Management & Roles</h3>
-      <p class="mt-2 mb-4 font-weight-light" style="color:rgba(101, 101, 101)">Manage who's on Test Project and their project role (Project Admin/Developer).
-        To create a brand-new user account, go to Users under Workspace.
+      <p class="mt-2 mb-4 font-weight-light" style="color:rgba(101, 101, 101)">Manage who's on {{ props.activeProject?.name }} and their project role (Project Admin/Developer).
+        Admins can create a brand-new user account by navigating to Users under Workspace.
       </p>
       <span class="text-uppercase font-weight-bold" style="font-size: smaller; color: rgba(95, 95, 85, 0.92); letter-spacing: 2%;">{{ props.activeProject?.name }} Members</span>
       <p class="mt-2 mb-4 font-weight-light" style="color:rgba(101, 101, 101)">Project Admins can add existing users to this project and set their

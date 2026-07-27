@@ -61,9 +61,9 @@ onMounted(async () => {
 
 function routeByRole(userData) {
   if (userData.globalRole === "ADMIN") {
-    router.push({ name: "overview" });
+    router.push({ name: "adminOverview" });
   } else {
-    router.push({ name: "myTasks" });
+    router.push({ name: "userOverview" });
   }
 }
 

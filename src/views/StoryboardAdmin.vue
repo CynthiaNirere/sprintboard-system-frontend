@@ -3,9 +3,9 @@ import { onMounted, ref, watch } from "vue";
 import TicketServices from "../services/TicketServices.js";
 import UserServices from "../services/UserServices.js";
 import BoardStatusesServices from "../services/BoardStatusesServices.js";
-
 import Ticket from "../components/Ticket.vue";
 import TicketModal from "../components/TicketModal.vue";
+
 const projects = ref([]);
 const currentProject = ref(null);
 const currentSprint = ref([]);
@@ -114,8 +114,6 @@ function addTicket(status){
   };
   openModal(newTicket, true);
 }
-
-
 </script>
 
 <template>

@@ -11,13 +11,7 @@ const title = ref("SprintBoard");
 const sidebarHeader = ref('sidebar-header')
 const logoutButton = ref('logout-button');
 const avatarOutline = ref('avatar-outline');
-const sessionExpirationTime = computed(() => {
-  const expireDate = new Date(user.value.sessionExpireDate);
-  return expireDate.toLocaleTimeString(navigator.language, {
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-});
+const hideSelect = ref('hide-select');
 const props = defineProps(['projects', 'selectedProject']);
 const emit = defineEmits(['update:selectedProject']);
 
@@ -39,13 +33,16 @@ function logout() {
   router.push({ name: "login" });
 }
 
+function formatRole(role) {
+  return role.charAt(0).toUpperCase() + role.substring(1).toLowerCase();
+}
 </script>
 
 <template>
   <v-navigation-drawer permanent>
     <div class="d-flex flex-column fill-height">
       <div :class="sidebarHeader" class="d-flex ga-4 px-4 align-center">
-        <router-link :to="{ name: user?.globalRole === 'ADMIN' ? 'overview' : 'myTasks' }">
+        <router-link :to="{ name: user?.globalRole === 'ADMIN' ? 'adminOverview' : 'userOverview' }">
           <v-img
             class="mx-2"
             :src="logoURL"
@@ -65,65 +62,94 @@ function logout() {
         item-title="name"
         return-object
         class="mx-5 mt-2 flex-grow-0"
-        color="#2E4DC9"
+        :class="hideSelect"
         bg-color="#DEE6FA"
         rounded="lg"
         density="compact"
-        variant="flat"
+        variant="outlined"
         placeholder="Select a project"
         no-data-text="No projects found"
+        menu-icon="none"
+        append-inner-icon="mdi-chevron-down"
       >
         <template #selection="{item}">
           <span style="color: #2E4DC9; font-weight: 500">{{ item.title }}</span>
         </template>
       </v-select>
   
-      <div id="navLinks" class="d-flex ga-2 flex-column">
-        <v-list-item :to="{ name: 'overview' }" class="mx-3 rounded-lg" active-class="active-tab">
+      <div id="thisProject">This Project</div>
+
+      <div id="navLinks" class="d-flex ga-2 flex-column flex-grow-1 overflow-y-auto">
+        <v-list-item :to="{ name: 'adminOverview' }" class="mx-3 rounded-lg" active-class="active-tab">
           <div class="d-flex ga-3 align-center">
             <v-icon>mdi-view-dashboard-outline</v-icon>
             <span>Overview</span>
           </div>
         </v-list-item>
-        <v-list-item :to="{ name: 'projects' }" class="mx-3 rounded-lg" active-class="active-tab">
-          <div class="d-flex ga-3 align-center">
-            <v-icon>mdi-folder-open-outline</v-icon>
-            <span>Projects</span>
-          </div>
-        </v-list-item>
-          <v-list-item class="mx-3 rounded-lg" active-class="active-tab">
+
+        <v-list-item :to="{ name: 'adminSprints' }" class="mx-3 rounded-lg" active-class="active-tab">
           <div class="d-flex ga-3 align-center">
             <v-icon>mdi-rocket-launch-outline</v-icon>
-            <span>Active Sprints</span>
+            <span>Sprints</span>
+          </div>
+        </v-list-item>
+
+        <v-list-item class="mx-3 rounded-lg" active-class="active-tab">
+          <div class="d-flex ga-3 align-center">
+            <v-icon>mdi-clipboard-text-outline</v-icon>
+            <span>Backlog</span>
           </div>
         </v-list-item>
         <v-list-item :to="{ name: 'teamManagement' }" class="mx-3 rounded-lg" active-class="active-tab">
           <div class="d-flex ga-3 align-center">
-            <v-icon>mdi-account-multiple-outline</v-icon>
+            <v-icon>mdi-account-plus-outline</v-icon>
             <span>Team Management</span>
           </div>
         </v-list-item>
+        
         <v-list-item class="mx-3 rounded-lg" active-class="active-tab">
           <div class="d-flex ga-3 align-center">
             <v-icon>mdi-github</v-icon>
             <span>GitHub Integrations</span>
           </div>
         </v-list-item>
+        
         <v-list-item class="mx-3 rounded-lg" active-class="active-tab">
           <div class="d-flex ga-3 align-center">
             <v-icon>mdi-cog-outline</v-icon>
-            <span>Global Settings</span>
+            <span>Board Statuses</span>
           </div>
         </v-list-item>
-       <v-list-item :to="{ name: 'profile' }" class="mx-3 rounded-lg" active-class="active-tab">
-  <div class="d-flex ga-3 align-center">
-    <v-icon>mdi-account-outline</v-icon>
-    <span>Profile</span>
-  </div>
-</v-list-item>
+        
+        <v-container>
+          <v-divider></v-divider>
+        </v-container>
+
+        <div id="workspace">Workspace</div>
+
+        <v-list-item :to="{ name: 'adminProjects' }" class="mx-3 rounded-lg" active-class="active-tab">
+          <div class="d-flex ga-3 align-center">
+            <v-icon>mdi-folder-open-outline</v-icon>
+            <span>Projects</span>
+          </div>
+        </v-list-item>
+        
+        <v-list-item class="mx-3 rounded-lg" active-class="active-tab">
+          <div class="d-flex ga-3 align-center">
+            <v-icon>mdi-account-multiple-outline</v-icon>
+            <span>Users</span>
+          </div>
+        </v-list-item>
+
+        <v-list-item :to="{ name: 'profile' }" class="mx-3 rounded-lg" active-class="active-tab">
+          <div class="d-flex ga-3 align-center">
+            <v-icon>mdi-account-outline</v-icon>
+            <span>Profile</span>
+          </div>
+        </v-list-item>
       </div>
-  
-      <div id="userProfile" class="mt-auto">
+      
+      <div v-if="user" id="userProfile" class="mt-4">
         <div class="d-flex flex-column mt-4 mx-4 ga-2">
 
           <div id="userInfo" class="d-flex ga-4 align-center">
@@ -134,19 +160,14 @@ function logout() {
                 }}</span>
               </v-avatar>
             </div>
-
             <div class="d-flex flex-column">
               <div class="font-weight-bold">
                 {{ user.firstName }} {{ user.lastName }}
               </div>
               <div id="userRole">
-                {{ user.globalRole }}
+                {{ formatRole(user.globalRole) }}
               </div>
             </div>
-          </div>
-
-          <div id="sessionExpiration">
-            <span>Session expires {{ sessionExpirationTime }}</span>
           </div>
 
           <div id="logout">
@@ -170,14 +191,25 @@ function logout() {
   height: 4rem;
 }
 
-#workingIn {
+#workingIn, #thisProject, #workspace {
   text-transform: uppercase; 
   font-weight: 600; 
   font-size: small;
   letter-spacing: 4%;
-  color: rgb(154, 151, 151);
-  margin-top: 0.7rem;
   margin-left: 1.2rem;
+}
+
+#workingIn {
+  color: rgb(128, 128, 128);
+  margin-top: 0.7rem;
+}
+
+#thisProject, #workspace {
+  color: rgb(143, 143, 143);
+}
+
+#thisProject {
+  margin-bottom: 0.4rem;
 }
 
 #userProfile {
@@ -191,7 +223,7 @@ function logout() {
   border-radius: 50%;
 }
 
-#userRole, #sessionExpiration {
+#userRole {
   font-size: x-small;
   color: rgb(73, 71, 71);
 }
@@ -202,11 +234,18 @@ function logout() {
   text-transform: capitalize;
   border: 1px solid rgb(211, 205, 205);
   border-radius: 8px;
+  margin-top: 0.2rem;
 }
 
 .active-tab {
   background-color: rgb(222, 230, 250, 0.3);
   color: #2E4DC9;
   font-weight: 600;
+}
+
+.hide-select {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>

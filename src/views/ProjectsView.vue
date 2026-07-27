@@ -106,7 +106,7 @@ function openProject(id) {
   const desiredProject = projects.value.find(p => p.id === id);
   if (desiredProject) {
     emit('select-project', desiredProject);
-    router.push({ name: "overview" });
+    router.push({ name: "adminOverview" });
   }
 }
 </script>

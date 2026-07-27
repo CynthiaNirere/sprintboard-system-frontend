@@ -10,6 +10,9 @@ export default {
   getProjectMembers(projectId) {
     return apiClient.get("projects/" + projectId + "/members");
   },
+  getUserProjects(userId) {
+    return apiClient.get("projects/user/" + userId);
+  },
   addProject(project) {
     return apiClient.post("projects", project);
   },

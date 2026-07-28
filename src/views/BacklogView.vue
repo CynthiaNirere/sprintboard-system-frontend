@@ -17,6 +17,10 @@ const currentTicket = ref();
 const isAddTicket = ref(false);
 const isModalOpen = ref(false);
 
+const showDeleteDialog = ref(false);
+const ticketToDelete = ref(null);
+const isDeletingTicket = ref(false);
+
 watch(() => props.activeProject, async (newProject) => {
   if (newProject) {
     await loadProjectData();
@@ -91,7 +95,7 @@ async function dropOnBacklog() {
     .catch(showError);
 }
 
-// --- Ticket create/edit/delete, reusing the existing TicketModal from Board.vue ---
+// --- Ticket create/edit, reusing the existing TicketModal from Board.vue ---
 
 function openModal(ticket, isAdd) {
   currentTicket.value = ticket;
@@ -122,6 +126,32 @@ function addToBacklog() {
 
 function onTicketCountChanged() {
   loadProjectData();
+}
+
+// --- Direct delete, same confirm-dialog pattern as Sprints.vue/ProjectsView.vue ---
+
+function confirmDeleteTicket(ticket) {
+  ticketToDelete.value = ticket;
+  showDeleteDialog.value = true;
+}
+
+async function deleteTicket() {
+  isDeletingTicket.value = true;
+  await TicketServices.deleteTicket(ticketToDelete.value.id)
+    .then(() => {
+      showDeleteDialog.value = false;
+      snackbar.value = {
+        value: true,
+        color: "success",
+        text: `"${ticketToDelete.value.title}" was deleted.`,
+      };
+      ticketToDelete.value = null;
+      loadProjectData();
+    })
+    .catch(showError)
+    .finally(() => {
+      isDeletingTicket.value = false;
+    });
 }
 
 function sprintDuration(sprint) {
@@ -169,15 +199,23 @@ function showError(error) {
           @drop="dropOnBacklog"
         >
           <div v-if="backlog.length > 0">
-            <Ticket
-              v-for="ticket in backlog"
-              :key="ticket.id"
-              :ticket="ticket"
-              draggable="true"
-              @dragstart="dragStart(ticket)"
-              @dragEnd="dragEnd"
-              @click="openModal(ticket, false)"
-            />
+          <div v-for="ticket in backlog" :key="ticket.id" style="position: relative;">
+              <Ticket
+                :ticket="ticket"
+                draggable="true"
+                @dragstart="dragStart(ticket)"
+                @dragEnd="dragEnd"
+                @click="openModal(ticket, false)"
+              />
+              <v-btn
+                icon="mdi-delete-outline"
+                variant="text"
+                color="error"
+                size="small"
+                style="position: absolute; top: 8px; right: 8px; z-index: 1;"
+                @click.stop="confirmDeleteTicket(ticket)"
+              ></v-btn>
+            </div>
           </div>
           <div v-else class="text-center text-medium-emphasis py-10">
             Backlog is empty — everything's scheduled into a sprint.<br />
@@ -243,6 +281,28 @@ function showError(error) {
         </div>
       </v-col>
     </v-row>
+
+    <v-dialog v-model="showDeleteDialog" max-width="440">
+      <v-card class="rounded-lg pa-2">
+        <v-card-title class="text-h6 font-weight-bold">Delete ticket?</v-card-title>
+        <v-card-text>
+          This will permanently delete
+          <strong>{{ ticketToDelete?.title }}</strong>. This cannot be undone.
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn variant="text" @click="showDeleteDialog = false">Cancel</v-btn>
+          <v-btn
+            color="error"
+            variant="flat"
+            :loading="isDeletingTicket"
+            @click="deleteTicket"
+          >
+            Delete
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <v-snackbar v-model="snackbar.value" rounded="pill">
       {{ snackbar.text }}

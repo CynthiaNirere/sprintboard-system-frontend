@@ -15,6 +15,8 @@ const apiClient = axios.create({
     "X-Requested-With": "XMLHttpRequest",
     "Access-Control-Allow-Origin": "*",
     crossDomain: true,
+    "Cache-Control": "no-cache, no-store, must-revalidate",
+    "Pragma": "no-cache",
   },
   transformRequest: (data, headers) => {
     let token = null;

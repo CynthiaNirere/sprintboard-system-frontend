@@ -37,12 +37,11 @@ const router = createRouter({
       path: "/admin",
       name: "adminLayout",
       component: () => import("./components/AdminLayout.vue"),
-      component: () => import("./components/AdminLayout.vue"),
-     redirect: { name: "overview" },
-     beforeEnter: (to, from, next) => {
+      redirect: { name: "adminOverview" },
+      beforeEnter: (to, from, next) => {
         const user = JSON.parse(localStorage.getItem("user") || "{}");
         if (user.globalRole === "ADMIN") next();
-        else next({ name: "userOverview" }); 
+        else next({ name: "userOverview" });
       },
       children: [
         {
@@ -60,25 +59,20 @@ const router = createRouter({
           name: "adminProject",
           component: () => import("./views/ProjectsView.vue"),
         },
-        { path: "profile",    
-          name: "profile",    
-          component: () => import("./views/Profile.vue")
+        {
+          path: "profile",
+          name: "profile",
+          component: () => import("./views/Profile.vue"),
         },
         {
           path: "backlog",
           name: "backlog",
           component: () => import("./views/BacklogView.vue"),
         },
-
         {
           path: "sprints",
           name: "adminSprints",
           component: () => import("./views/Sprints.vue"),
-        },
-        {
-          path: "backlog",
-          name: "backlog",
-          component: () => import("./views/BacklogView.vue"),
         },
       ]
     },
@@ -97,69 +91,18 @@ const router = createRouter({
           path: "profile",
           name: "userProfile",
           component: () => import("./views/Profile.vue"),
-    },
+        },
         {
           path: "backlog",
           name: "userBacklog",
           component: () => import("./views/BacklogView.vue"),
-            },
+        },
         {
           path: "sprints",
           name: "sprints",
           component: () => import("./views/Sprints.vue"),
         },
       ]
-      path: "profile",
-      name: "userProfile",
-      component: () => import("./views/Profile.vue"),
-    },
-        {
-          path: "backlog",
-          name: "userBacklog",
-          component: () => import("./views/BacklogView.vue"),
-        },
-      ]
-    },
-    {
-      path: "/admin/dashboard",
-      name: "adminDashboard",
-      component: () => import("./views/AdminDashboard.vue"),
-    },
-    {
-      path: "/shows/:id/events/:eventId/seatmap",
-      name: "seatmap",
-      component: () => import("./views/SeatMap.vue"),
-    },
-    {
-      path: "/admin/reports",
-      name: "adminReports",
-      component: () => import("./views/AdminReports.vue"),
-    },
-    {
-      path: "/shows/:id/events/:eventId/booking",
-      name: "booking",
-      component: () => import("./views/Booking.vue"),
-    },
-    {
-      path: "/refund/:paymentId",
-      name: "requestRefund",
-      component: () => import("./views/Refund.vue"),
-      props: true,
-    },
-    {
-      path: "/admin/refunds",
-      name: "adminRefunds",
-      component: () => import("./views/AdminRefunds.vue"),
-    },
-    {
-      path: "/shows/:id/events/:eventId/payment",
-      name: "payment",
-      component: () => import("./views/Payment.vue"),
-    },
-    {
-      path: "/shows/:id/events/:eventId/confirmation",
-      name: "confirmation",
-      component: () => import("./views/Confirmation.vue"),
     },
 ],
 });
@@ -167,7 +110,7 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   if (to.path.startsWith("/admin")) {
     const user = JSON.parse(localStorage.getItem("user") || "{}");
-    if (user.globalRole !== "ADMIN") return next({ name: "myTasks" });
+    if (user.globalRole !== "ADMIN") return next({ name: "userOverview" });
   }
   next();
 });

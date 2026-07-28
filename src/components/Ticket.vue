@@ -27,14 +27,12 @@ onMounted(async () => {
 
 async function getOwner() {
   if (!ticket.value.assigneeId) {
-    console.log("Ticket is not assigned to a user!");
     return;
   }
 
   await UserServices.getUserById(ticket.value.assigneeId)
     .then((response) => {
       owner.value = response.data;
-      console.log(owner.value.email);
     })
     .catch((error) => {
       console.log(error);
@@ -46,12 +44,13 @@ async function getOwner() {
 
 <template>
   <v-card class="ma-2" @click="openModal">
-    <v-card-title>
-        {{ticket.id}}
-    </v-card-title>
+    
     <v-card-text>
       {{ ticket.title }}
     </v-card-text>
+   <!-- <v-card-title>
+        {{ticket.id}} 
+    </v-card-title>  un comment this after github interactions work to view ticket id-->
     <div class="d-flex pb-1">
       <v-card-subtitle >
         {{ owner?.email ?? "fake@example.com" }}

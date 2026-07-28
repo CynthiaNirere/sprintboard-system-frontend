@@ -135,7 +135,21 @@ async function del(){
         <div class="modal-footer">
           <slot name="footer">
             <div class="d-flex">
-              <v-btn class="d-block ma-auto" color="primary" @click.stop="del()">delete</v-btn>
+              <v-btn
+                v-if="addTicket"
+                class="d-block ma-auto"
+                @click.stop="emit('modal-close')"
+              >
+                Cancel
+              </v-btn>
+              <v-btn
+                v-else
+                class="d-block ma-auto"
+                color="primary"
+                @click.stop="del()"
+              >
+                delete
+              </v-btn>
               <v-btn class="d-block ma-auto" @click.stop="submit()">Submit</v-btn>
             </div>
           </slot>

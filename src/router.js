@@ -34,6 +34,11 @@ const router = createRouter({
       component: () => import("./views/Profile.vue"),
     },
     {
+      path: "/myprojects",
+      name: "myProjects",
+      component: () => import("./views/ProjectsView.vue"),
+    },
+    {
       path: "/admin",
       name: "adminLayout",
       component: () => import("./components/AdminLayout.vue"),
@@ -74,16 +79,6 @@ const router = createRouter({
           name: "adminSprints",
           component: () => import("./views/Sprints.vue"),
         },
-        {
-          path: "backlog",
-          name: "backlog",
-          component: () => import("./views/BacklogView.vue"),
-        },
-        {
-          path: "sprints",
-          name: "adminSprints",
-          component: () => import("./views/Sprints.vue"),
-        },
       ]
     },
     {
@@ -98,14 +93,9 @@ const router = createRouter({
           component: () => import("./views/Storyboard.vue"),
         },
         {
-              path: "profile",
-              name: "userProfile",
-              component: () => import("./views/Profile.vue"),
-        },
-        {
-          path: "backlog",
-          name: "userBacklog",
-          component: () => import("./views/BacklogView.vue"),
+          path: "profile",
+          name: "userProfile",
+          component: () => import("./views/Profile.vue"),
         },
         {
           path: "backlog",
@@ -120,12 +110,6 @@ const router = createRouter({
       ]
     },
     {
-      path: "/admin/dashboard",
-      name: "adminDashboard",
-      component: () => import("./views/AdminDashboard.vue"),
-    },
-
-    {
       path: "/project-admin/:id",
       name: "projectAdminLayout",
       component: () => import("./components/ProjectAdminLayout.vue"),
@@ -139,9 +123,14 @@ const router = createRouter({
           path: "sprints",
           name: "projectAdminSprints",
           component: () => import("./views/Sprints.vue")
-        }
+        },
+        {
+          path: "backlog",
+          name: "projectAdminBacklog",
+          component: () => import("./views/BacklogView.vue")
+        },
       ],
-    }
+    },
 ],
 });
 

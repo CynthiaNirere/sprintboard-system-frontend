@@ -43,7 +43,6 @@ function formatRole(role) {
     <div class="d-flex flex-column fill-height">
       <div :class="sidebarHeader" class="d-flex ga-4 px-4 align-center">
         <router-link :to="{ name: user?.globalRole === 'ADMIN' ? 'adminOverview' : 'userOverview' }">
-        <router-link :to="{ name: user?.globalRole === 'ADMIN' ? 'adminOverview' : 'userOverview' }">
           <v-img
             class="mx-2"
             :src="logoURL"

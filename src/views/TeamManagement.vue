@@ -13,6 +13,15 @@ const newProjectMember = ref({
   projectRole: "DEVELOPER"
 });
 
+const projectRoles = [
+  {
+    title: "Project Admin", value: "PROJECT_ADMIN"
+  },
+  {
+    title: "Developer", value: "DEVELOPER"
+  }
+];
+
 const userSearchBar = ref('user-search-bar');
 const pageHeader = ref('page-header');
 const selectProjectRole = ref('select-project-role');
@@ -191,6 +200,21 @@ function isUserProjectAdmin(role) {
   return role === "PROJECT_ADMIN";
 }
 
+function ableToEdit(projectMember) {
+  if (user.value.globalRole === "ADMIN") {
+    return true;
+  }
+  else if (user.value.id === projectMember.id) {
+    return false;
+  }
+  else if (projectMember.project_member.projectRole === "PROJECT_ADMIN") {
+    return false;
+  }
+  else {
+    return true;
+  }
+}
+
 function ableToDelete(projectMember) {
   if (user.value.globalRole === "ADMIN") {
     return true;
@@ -252,8 +276,9 @@ function ableToDelete(projectMember) {
                     <div>
                       <v-select
                         v-model="projectMember.project_member.projectRole"
-                        :items="['PROJECT_ADMIN', 'DEVELOPER']"
-                        :item-title="item => formatRole(item)"
+                        :items="projectRoles"
+                        item-title="title"
+                        item-value="value"
                         density="compact"
                         variant="flat"
                         hide-details
@@ -263,6 +288,7 @@ function ableToDelete(projectMember) {
                         :menu-icon="null"
                         append-inner-icon="mdi-chevron-down"
                         @update:modelValue="updateProjectMember(projectMember.id, $event)"
+                        :disabled="!ableToEdit(projectMember)"
                       >
                       </v-select>
                     </div>
@@ -270,9 +296,8 @@ function ableToDelete(projectMember) {
                     <div>
                       <div 
                         :style="{
-                          opacity: ableToDelete(projectMember) ? 1 : 0.4,
+                          opacity: ableToDelete(projectMember) ? 1 : 0.3,
                           cursor: ableToDelete(projectMember) ? 'pointer' : 'not-allowed',
-                          backgroundColor: ableToDelete(projectMember) ? 'rgba(249, 214, 206, 0.714)' : 'rgba(254, 250, 249, 0.714)'
                         }"
                         :class="deleteBackground" 
                         class="d-flex justify-center align-center" 
@@ -281,7 +306,7 @@ function ableToDelete(projectMember) {
                         <v-icon 
                           id="checkmark" 
                           size="20" 
-                          :color="ableToDelete(projectMember) ? 'red' : 'grey'">
+                          color="red">
                           mdi-account-minus-outline
                         </v-icon>
                       </div>               
@@ -330,8 +355,9 @@ function ableToDelete(projectMember) {
           <div>
             <v-select
               v-model="newProjectMember.projectRole"
-              :items="['PROJECT_ADMIN', 'DEVELOPER']"
-              :item-title="item => formatRole(item)"
+              :items="projectRoles"
+              item-title="title"
+              item-value="value"
               density="compact"
               variant="flat"
               hide-details
@@ -410,6 +436,7 @@ function ableToDelete(projectMember) {
 }
 
 .delete-background {
+  background-color: rgba(249, 214, 206, 0.714);
   border-radius: 25%;
   width: 30px;
   height: 30px;

@@ -106,8 +106,6 @@ function formatRole(role) {
           <div class="d-flex ga-3 align-center">
             <v-icon>mdi-folder-open-outline</v-icon>
             <span>My Projects</span>
-            <v-icon>mdi-rocket-launch-outline</v-icon>
-            <span> Backlog </span>
           </div>
         </v-list-item>
 

@@ -18,6 +18,7 @@ const pageHeader = ref('page-header');
 const selectProjectRole = ref('select-project-role');
 const selectUser = ref('select-user');
 const avatarOutline = ref('avatar-outline');
+const deleteBackground = ref('delete-background');
 
 const snackbar = ref({
   value: false,
@@ -48,7 +49,7 @@ async function getUsers() {
     .catch((error) => {
       console.log(error);
       users.value = [];
-      snackbar.value = true;
+      snackbar.value.value = true;
       snackbar.value.color = "error";
       snackbar.value.text = error.response?.data?.message || "Error loading users";  
     });
@@ -62,7 +63,7 @@ async function getProjectMembers(projectId) {
     .catch((error) => {
       console.log(error);
       projectMembers.value = [];
-      snackbar.value = true;
+      snackbar.value.value = true;
       snackbar.value.color = "error";
       snackbar.value.text = error.response?.data?.message || "Error loading project members";       
     });
@@ -189,6 +190,18 @@ function formatRole(role) {
 function isUserProjectAdmin(role) {
   return role === "PROJECT_ADMIN";
 }
+
+function ableToDelete(projectMember) {
+  if (user.value.globalRole === "ADMIN") {
+    return true;
+  }
+  else if (projectMember.project_member.projectRole === "PROJECT_ADMIN") {
+    return false;
+  }
+  else {
+    return true;
+  }
+}
 </script>
 
 <template>
@@ -255,8 +268,20 @@ function isUserProjectAdmin(role) {
                     </div>
 
                     <div>
-                      <div id="delete-background" class="d-flex justify-center align-center" @click="deleteProjectMember(projectMember.id)">
-                        <v-icon id="checkmark" size="20" color="red">
+                      <div 
+                        :style="{
+                          opacity: ableToDelete(projectMember) ? 1 : 0.4,
+                          cursor: ableToDelete(projectMember) ? 'pointer' : 'not-allowed',
+                          backgroundColor: ableToDelete(projectMember) ? 'rgba(249, 214, 206, 0.714)' : 'rgba(254, 250, 249, 0.714)'
+                        }"
+                        :class="deleteBackground" 
+                        class="d-flex justify-center align-center" 
+                        @click="ableToDelete(projectMember) ? deleteProjectMember(projectMember.id) : null"
+                      >
+                        <v-icon 
+                          id="checkmark" 
+                          size="20" 
+                          :color="ableToDelete(projectMember) ? 'red' : 'grey'">
                           mdi-account-minus-outline
                         </v-icon>
                       </div>               
@@ -384,8 +409,7 @@ function isUserProjectAdmin(role) {
   text-overflow: ellipsis;
 }
 
-#delete-background {
-  background-color: rgba(249, 214, 206, 0.714);
+.delete-background {
   border-radius: 25%;
   width: 30px;
   height: 30px;

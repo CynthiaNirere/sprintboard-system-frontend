@@ -29,7 +29,7 @@ async function getMyProjects() {
     .catch((error) => {
       console.log(error);
       projects.value = [];
-      snackbar.value = true;
+      snackbar.value.value = true;
       snackbar.value.color = "error";
       snackbar.value.text = error.response?.data?.message || "Error loading projects for user.";
     });

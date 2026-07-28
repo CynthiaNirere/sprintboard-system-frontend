@@ -41,7 +41,7 @@ const router = createRouter({
       beforeEnter: (to, from, next) => {
         const user = JSON.parse(localStorage.getItem("user") || "{}");
         if (user.globalRole === "ADMIN") next();
-        else next({ name: "userOverview" }); 
+        else next({ name: "userOverview" });
       },
       children: [
         {
@@ -69,9 +69,15 @@ const router = createRouter({
           name: "teamManagement",
           component: () => import("./views/TeamManagement.vue"),
         },
-        { path: "profile",    
-          name: "profile",    
-          component: () => import("./views/Profile.vue")
+        {
+          path: "profile",
+          name: "profile",
+          component: () => import("./views/Profile.vue"),
+        },
+        {
+          path: "backlog",
+          name: "backlog",
+          component: () => import("./views/BacklogView.vue"),
         },
         {
           path: "sprints",
@@ -102,6 +108,11 @@ const router = createRouter({
           component: () => import("./views/Profile.vue"),
         },
         {
+          path: "backlog",
+          name: "userBacklog",
+          component: () => import("./views/BacklogView.vue"),
+        },
+        {
           path: "sprints",
           name: "sprints",
           component: () => import("./views/Sprints.vue"),
@@ -112,6 +123,7 @@ const router = createRouter({
       path: "/project-admin/:id",
       name: "projectAdminLayout",
       component: () => import("./components/ProjectAdminLayout.vue"),
+      redirect: (to) => ({ name: "projectAdminOverview", params: { id: to.params.id } }),
       children: [
         {
           path: "storyboard",
@@ -121,6 +133,13 @@ const router = createRouter({
         {
           path: "sprints",
           name: "projectAdminSprints",
+          component: () => import("./views/Sprints.vue")
+        },
+        {
+          path: "backlog",
+          name: "projectAdminBacklog",
+          component: () => import("./views/BacklogView.vue")
+        },
           component: () => import("./views/Sprints.vue"),
         },
         {
@@ -129,8 +148,16 @@ const router = createRouter({
           component: () => import("./views/TeamManagement.vue"),
         }
       ],
-    }
+    },
 ],
+});
+
+router.beforeEach((to, from, next) => {
+  if (to.path.startsWith("/admin")) {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    if (user.globalRole !== "ADMIN") return next({ name: "userOverview" });
+  }
+  next();
 });
 
 export default router;

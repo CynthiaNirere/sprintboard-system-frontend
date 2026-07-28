@@ -37,17 +37,20 @@ async function getMyProjects() {
 </script>
 
 <template>
-  <UserSidebar 
-    :projects="projects"
-    v-model:selectedProject="currentProject"    
-  />
-  <div id="main-content" class="d-flex flex-grow-1">
-    <router-view
-      class="ml-5"
-      :active-project="currentProject"
+  <div class="d-flex">
+    <UserSidebar 
       :projects="projects"
-      @select-project="(project) => currentProject = project"        
+      v-model:selectedProject="currentProject"    
     />
+    <div id="main-content" class="flex-grow-1">
+      <div class="d-flex flex-column">
+        <router-view
+          :active-project="currentProject"
+          :projects="projects"
+          @select-project="(project) => currentProject = project"        
+        />
+      </div>
+    </div>
   </div>
 
   <v-snackbar v-model="snackbar.value" rounded="pill">

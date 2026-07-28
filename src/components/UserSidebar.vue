@@ -19,6 +19,7 @@ const emit = defineEmits(['update:selectedProject']);
 onMounted(async () => {
   logoURL.value = ocLogo;
   user.value = JSON.parse(localStorage.getItem("user"));
+  console.log(user);
 });
 
 function logout() {
@@ -86,14 +87,14 @@ function formatRole(role) {
           </div>
         </v-list-item>
 
-          <v-list-item :to="{ name: 'sprints' }" class="mx-3 rounded-lg" active-class="active-tab">
+        <v-list-item :to="{ name: 'sprints' }" class="mx-3 rounded-lg" active-class="active-tab">
           <div class="d-flex ga-3 align-center">
             <v-icon>mdi-rocket-launch-outline</v-icon>
             <span>Sprints</span>
           </div>
         </v-list-item>
 
-        <v-list-item class="mx-3 rounded-lg" active-class="active-tab">
+        <v-list-item :to="{ name: 'userBacklog' }" class="mx-3 rounded-lg" active-class="active-tab">
           <div class="d-flex ga-3 align-center">
             <v-icon>mdi-clipboard-text-outline</v-icon>
             <span>Backlog</span>

@@ -33,39 +33,35 @@ function openModal(ticket, isAdd) {
 
 onMounted(async () => {
   user.value = JSON.parse(localStorage.getItem("user"));
+
   await getProjectsForUser();
+
   if (currentProject.value) {
     await getBoardStatusesForProject(currentProject.value.id);
-    if (currentSprint.value)
+
+    if (currentSprint.value) {
       await getTicketsForSprint(currentSprint.value);
+    }
   }
-  // await getProjectsForUser();
-  // await getBoardStatusesForProject(currentProject.value.id);
-  // if(currentSprint.value)
-  //   await getTicketsForSprint(currentSprint.value);
 });
 
+
 watch(() => props.activeProject, async (newProject) => {
+
   if (newProject) {
     await getBoardStatusesForProject(newProject.id);
 
     if (newProject.projectSprints?.length > 0) {
       currentSprint.value = newProject.projectSprints[0].id;
       await getTicketsForSprint(currentSprint.value);
-    }
-    else {
+    } else {
       currentSprint.value = null;
       tickets.value = [];
     }
   }
-}, { immediate: true});
-  await getProjectsForUser();
-  if (currentProject.value) {
-    await getBoardStatusesForProject(currentProject.value.id);
-    if (currentSprint.value)
-      await getTicketsForSprint(currentSprint.value);
-  }
-});
+
+}, { immediate: true });
+
 
 async function getProjectsForUser(){
   await UserServices.getUserById(user.value.id)

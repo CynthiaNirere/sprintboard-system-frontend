@@ -86,15 +86,14 @@ function formatRole(role) {
           </div>
         </v-list-item>
 
-          <v-list-item :to="{ name: 'sprints' }" :to="{ name: 'userBacklog' }" class="mx-3 rounded-lg" active-class="active-tab">
+        <v-list-item :to="{ name: 'sprints' }" class="mx-3 rounded-lg" active-class="active-tab">
           <div class="d-flex ga-3 align-center">
             <v-icon>mdi-rocket-launch-outline</v-icon>
-            <span> Backlog </span>
             <span>Sprints</span>
           </div>
         </v-list-item>
 
-        <v-list-item class="mx-3 rounded-lg" active-class="active-tab">
+        <v-list-item :to="{ name: 'userBacklog' }" class="mx-3 rounded-lg" active-class="active-tab">
           <div class="d-flex ga-3 align-center">
             <v-icon>mdi-clipboard-text-outline</v-icon>
             <span>Backlog</span>
@@ -105,8 +104,6 @@ function formatRole(role) {
           <div class="d-flex ga-3 align-center">
             <v-icon>mdi-folder-open-outline</v-icon>
             <span>My Projects</span>
-            <v-icon>mdi-rocket-launch-outline</v-icon>
-            <span> Backlog </span>
           </div>
         </v-list-item>
 

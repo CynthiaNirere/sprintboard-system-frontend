@@ -4,6 +4,8 @@ import { useRouter } from "vue-router";
 import SprintServices from "../services/sprintServices.js";
 import TicketServices from "../services/TicketServices.js";
 import BoardStatusesServices from "../services/BoardStatusesServices.js";
+import RetroServices from "../services/retroServices.js"
+import retro from "../components/retro.vue"
 
 
 const router = useRouter();
@@ -31,6 +33,9 @@ const startDateRules = [(v) => !!v || "Sprint start date is required"];
 const endDateRules = [(v) => !!v || "Sprint end date is required"];
 
 const lengthDaysRules = [(v) => !!v || "Sprint length days is required"];
+
+const isRetroOpen = ref(false);
+const currentRetro = ref({});
 
 watch(() => props.activeProject, async (newProject) => {
   if (newProject) {    
@@ -249,6 +254,75 @@ function displayDate(dateString) {
   });
 }
 
+async function getRetro(sprintId){
+    RetroServices.findSprintRetro(sprintId)
+    .then((response) => {
+        console.log("Here");
+        console.log(response.data.retrospectiveItems);
+        console.log(Array.isArray(response.data.retrospectiveItems));
+      currentRetro.value = response.data;
+    })
+    .catch((error) => {
+      console.log(error);
+      snackbar.value.value = true;
+      snackbar.value.color = "error";
+      snackbar.value.text =  "No retro exists, Creating new one";
+    });
+}
+
+async function openRetro(sprint){
+    
+    if(sprint.sprintRetrospective == null){
+        let retro = {
+            title: "Retrospective",
+            status: 'SCHEDULED',
+            sprintId: sprint.id,
+        }
+        await RetroServices.addRetro(retro)
+        .then((response) => {
+            currentRetro.value = response.data;
+            
+        })
+        .catch((error) => {
+        console.log(error);
+            props.snackbar.value = true;
+            props.snackbar.color = "error";
+            props.snackbar.text = error.response?.data?.message || "Error creating retro";
+        });
+    }
+    return RetroServices.findSprintRetro(sprint.id)
+    .then((response) => {
+        console.log(response.data);
+        console.log(response.data.retrospectiveItems);
+        console.log(Array.isArray(response.data.retrospectiveItems));
+      currentRetro.value = response.data;
+      isRetroOpen.value = true;
+    })
+    .catch((error) => {
+      console.log(error);
+      snackbar.value.value = true;
+      snackbar.value.color = "error";
+      snackbar.value.text =  "No retro exists";
+    });
+    currentSprint.value = sprint;
+}
+
+async function updateRetro(retro){
+    console.log(retro);
+    await RetroServices.updateRetro(retro.id, retro)
+        .then((response) => {
+            console.log("updatedRetro");
+            
+        })
+        .catch((error) => {
+        console.log(error);
+            props.snackbar.value = true;
+            props.snackbar.color = "error";
+            props.snackbar.text = error.response?.data?.message || "retro update error";
+        });
+}
+
+
 </script>
 
 <template>
@@ -316,7 +390,7 @@ function displayDate(dateString) {
               color="primary"
               size="small"
               class="ma-auto w-100"
-              @click="openRetro(sprint.id)"
+              @click="openRetro(sprint)"
             >
               Retro
             </v-btn>
@@ -431,6 +505,7 @@ function displayDate(dateString) {
             </v-card-actions>
         </v-card>
         </v-dialog>
+    <retro  :is-open="isRetroOpen" :retro="currentRetro" :sprint="currentSprint" :user="user" @update-retro="updateRetro" @retro-created="getRetro(sprintId)"  @modal-close="isRetroOpen = false" :snackbar="snackbar"/>
     <v-snackbar v-model="snackbar.value" rounded="pill">
       {{ snackbar.text }}
       <template v-slot:actions>

@@ -93,14 +93,12 @@ function formatRole(role) {
             <span>Sprints</span>
           </div>
         </v-list-item>
-
-        <v-list-item class="mx-3 rounded-lg" active-class="active-tab">
+            <v-list-item :to="{ name: 'backlog' }" class="mx-3 rounded-lg" active-class="active-tab">
           <div class="d-flex ga-3 align-center">
             <v-icon>mdi-clipboard-text-outline</v-icon>
-            <span>Backlog</span>
-          </div>
-        </v-list-item>
-
+              <span>Backlog</span>
+            </div>
+          </v-list-item>
         <v-list-item class="mx-3 rounded-lg" active-class="active-tab">
           <div class="d-flex ga-3 align-center">
             <v-icon>mdi-account-plus-outline</v-icon>

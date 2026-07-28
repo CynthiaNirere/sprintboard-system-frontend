@@ -60,6 +60,16 @@ const router = createRouter({
           component: () => import("./views/ProjectsView.vue"),
         },
         {
+          path: "my-projects",
+          name: "userProjects",
+          component: () => import("./views/UserProject.vue"),
+        },
+        {
+          path: "team-management",
+          name: "teamManagement",
+          component: () => import("./views/TeamManagement.vue"),
+        },
+        {
           path: "profile",
           name: "profile",
           component: () => import("./views/Profile.vue"),
@@ -130,6 +140,11 @@ const router = createRouter({
           name: "projectAdminBacklog",
           component: () => import("./views/BacklogView.vue")
         },
+        {
+          path: "team-management",
+          name: "projectAdminTeamManagement",
+          component: () => import("./views/TeamManagement.vue"),
+        }
       ],
     },
 ],

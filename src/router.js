@@ -88,6 +88,11 @@ const router = createRouter({
           component: () => import("./views/Storyboard.vue"),
         },
         {
+          path: "projects",
+          name: "myProjects",
+          component: () => import("./views/MyProjects.vue"),
+        },
+        {
           path: "profile",
           name: "userProfile",
           component: () => import("./views/Profile.vue"),
@@ -104,6 +109,23 @@ const router = createRouter({
         },
       ]
     },
+    {
+      path: "/project-admin/:id",
+      name: "projectAdminLayout",
+      component: () => import("./components/ProjectAdminLayout.vue"),
+      children: [
+        {
+          path: "storyboard",
+          name: "projectAdminOverview",
+          component: () => import("./views/Storyboard.vue"),
+        },
+        {
+          path: "sprints",
+          name: "projectAdminSprints",
+          component: () => import("./views/Sprints.vue")
+        }
+      ],
+    }
 ],
 });
 

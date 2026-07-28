@@ -1,19 +1,21 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import ProjectServices from "../services/projectServices.js";
-import BacklogServices from "../services/BacklogServices.js";
+import SprintServices from "../services/sprintServices.js";
 
+const user = ref(null);
 const projects = ref([]);
 const selectedProject = ref(null);
 const sprints = ref([]);
 const snackbar = ref({ value: false, color: "", text: "" });
 
 onMounted(async () => {
+  user.value = JSON.parse(localStorage.getItem("user"));
   await getProjects();
 });
 
 async function getProjects() {
-  await ProjectServices.getProjects()
+  await ProjectServices.getUserProjects(user.value.id)
     .then((response) => {
       projects.value = response.data;
       if (projects.value.length > 0) {

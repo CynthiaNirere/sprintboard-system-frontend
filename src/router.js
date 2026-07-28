@@ -140,8 +140,6 @@ const router = createRouter({
           name: "projectAdminBacklog",
           component: () => import("./views/BacklogView.vue")
         },
-          component: () => import("./views/Sprints.vue"),
-        },
         {
           path: "team-management",
           name: "projectAdminTeamManagement",

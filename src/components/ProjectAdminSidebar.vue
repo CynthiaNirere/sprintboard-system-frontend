@@ -3,10 +3,8 @@ import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
 import UserServices from "../services/UserServices";
 import ocLogo from "/oc_logo.png";
-import projectServices from "../services/projectServices";
 
 const user = ref(null);
-const router = useRouter();
 const logoURL = ref("");
 const title = ref("SprintBoard");
 const sidebarHeader = ref('sidebar-header')
@@ -14,7 +12,7 @@ const logoutButton = ref('logout-button');
 const avatarOutline = ref('avatar-outline');
 const hideSelect = ref('hide-select');
 const props = defineProps(['projects', 'selectedProject']);
-const emit = defineEmits(['update:selectedProject']);
+const router = useRouter();
 
 onMounted(async () => {
   logoURL.value = ocLogo;
@@ -43,7 +41,7 @@ function formatRole(role) {
   <v-navigation-drawer permanent>
     <div class="d-flex flex-column fill-height">
       <div :class="sidebarHeader" class="d-flex ga-4 px-4 align-center">
-        <router-link :to="{ name: user?.globalRole === 'ADMIN' ? 'adminOverview' : 'userOverview' }">
+        <router-link :to="{ name: user?.globalRole === 'ADMIN' ? 'adminOverview' : 'projectAdminOverview' }">
           <v-img
             class="mx-2"
             :src="logoURL"
@@ -54,39 +52,49 @@ function formatRole(role) {
         </router-link>
         <h3 class="text-white font-weight-bold">{{ title }}</h3>
       </div>
-  
-      <div id="workingIn">Project</div>
+
+      <div class="mt-4">        
+        <v-btn
+          variant="text"
+          prepend-icon="mdi-arrow-left"
+          color="#2E4DC9" 
+          class="ml-3"
+          style="text-transform: none; font-weight: 600; letter-spacing: 4%;"
+          :ripple="false"  
+          :to="{ name: 'myProjects' }"  
+        >
+          Back to My Projects
+        </v-btn>
+      </div>
+
+      <div id="workingIn">Managing</div>
       <v-select
         :model-value="selectedProject"
-        @update:model-value="val => emit('update:selectedProject', val)"
         :items="projects"
         item-title="name"
-        return-object
         class="mx-5 mt-2 flex-grow-0"
         :class="hideSelect"
         bg-color="#DEE6FA"
         rounded="lg"
         density="compact"
         variant="outlined"
-        placeholder="Select a project"
-        no-data-text="No projects found"
         menu-icon="none"
-        append-inner-icon="mdi-chevron-down"
+        readonly
       >
         <template #selection="{item}">
           <span style="color: #2E4DC9; font-weight: 500">{{ item.title }}</span>
         </template>
       </v-select>
 
-      <div id="navLinks" class="d-flex ga-2 flex-column">
-        <v-list-item :to="{ name: 'userOverview' }" class="mx-3 rounded-lg" active-class="active-tab">
+      <div id="navLinks" class="d-flex ga-2 flex-column flex-grow-1 overflow-y-auto">
+        <v-list-item :to="{ name: 'projectAdminOverview' }" class="mx-3 rounded-lg" active-class="active-tab">
           <div class="d-flex ga-3 align-center">
             <v-icon>mdi-view-dashboard-outline</v-icon>
             <span>Overview</span>
           </div>
         </v-list-item>
 
-          <v-list-item :to="{ name: 'sprints' }" class="mx-3 rounded-lg" active-class="active-tab">
+        <v-list-item :to="{ name: 'projectAdminSprints' }" class="mx-3 rounded-lg" active-class="active-tab">
           <div class="d-flex ga-3 align-center">
             <v-icon>mdi-rocket-launch-outline</v-icon>
             <span>Sprints</span>
@@ -100,22 +108,29 @@ function formatRole(role) {
           </div>
         </v-list-item>
 
-        <v-list-item :to="{ name: 'myProjects' }" class="mx-3 rounded-lg" active-class="active-tab">
+        <v-list-item class="mx-3 rounded-lg" active-class="active-tab">
           <div class="d-flex ga-3 align-center">
-            <v-icon>mdi-folder-open-outline</v-icon>
-            <span>My Projects</span>
+            <v-icon>mdi-account-plus-outline</v-icon>
+            <span>Team Management</span>
           </div>
         </v-list-item>
-
-        <v-list-item :to="{ name: 'userProfile' }" class="mx-3 rounded-lg" active-class="active-tab">
+        
+        <v-list-item class="mx-3 rounded-lg" active-class="active-tab">
           <div class="d-flex ga-3 align-center">
-             <v-icon>mdi-account-outline</v-icon>
-            <span>Profile</span>
-            </div>
+            <v-icon>mdi-github</v-icon>
+            <span>GitHub Integrations</span>
+          </div>
+        </v-list-item>
+        
+        <v-list-item class="mx-3 rounded-lg" active-class="active-tab">
+          <div class="d-flex ga-3 align-center">
+            <v-icon>mdi-cog-outline</v-icon>
+            <span>Board Statuses</span>
+          </div>
         </v-list-item>
       </div>
-  
-      <div v-if="user" id="userProfile" class="mt-auto">
+      
+      <div v-if="user" id="userProfile" class="mt-4">
         <div class="d-flex flex-column mt-4 mx-4 ga-2">
 
           <div id="userInfo" class="d-flex ga-4 align-center">
@@ -157,29 +172,14 @@ function formatRole(role) {
   height: 4rem;
 }
 
-#navLinks {
-  margin-top: 1.2rem;
-}
-
-#workingIn, #thisProject, #workspace {
+#workingIn {
   text-transform: uppercase; 
   font-weight: 600; 
   font-size: small;
   letter-spacing: 4%;
   margin-left: 1.2rem;
-}
-
-#workingIn {
-  color: rgb(128, 128, 128);
   margin-top: 0.7rem;
-}
-
-#thisProject, #workspace {
-  color: rgb(143, 143, 143);
-}
-
-#thisProject {
-  margin-bottom: 0.4rem;
+  color: rgb(128, 128, 128);
 }
 
 #userProfile {
@@ -200,7 +200,7 @@ function formatRole(role) {
 
 .logout-button {
   width: 100%;
-  color: rgb(71, 73, 71);
+  color: rgb(73, 71, 71);
   text-transform: capitalize;
   border: 1px solid rgb(211, 205, 205);
   border-radius: 8px;

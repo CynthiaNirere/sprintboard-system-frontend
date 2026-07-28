@@ -1,11 +1,12 @@
 <script setup>
 import { onMounted, ref, watch } from "vue";
-import AdminSidebar from "./AdminSidebar.vue";
+import { useRoute } from "vue-router";
+import ProjectAdminSidebar from "./ProjectAdminSidebar.vue";
 import projectServices from "../services/projectServices.js";
 
 const user = ref(null);
-const projects = ref([]);
 const currentProject = ref(null);
+const route = useRoute();
 
 const snackbar = ref({
   value: false,
@@ -15,40 +16,38 @@ const snackbar = ref({
 
 onMounted(async () => {
   user.value = JSON.parse(localStorage.getItem("user"));
-  await getAllProjects();
+  const projectId = route.params.id;
+  await getProject(projectId);
 });
 
-async function getAllProjects() {
-  await projectServices.getProjects()
+async function getProject(projectId) {
+  await projectServices.getProject(projectId)
     .then((response) => {
-      projects.value = response.data;
-      if (projects.value.length > 0) {
-        currentProject.value = projects.value[0];
-      }
+      currentProject.value = response.data;
     })
     .catch((error) => {
       console.log(error);
-      projects.value = [];
+      currentProject.value = null;
       snackbar.value.value = true;
       snackbar.value.color = "error";
-      snackbar.value.text = error.response?.data?.message || "Error loading projects.";
+      snackbar.value.text = error.response?.data?.message || "Error loading project.";
     });
 }
 </script>
 
 <template>
-    <AdminSidebar 
-      :projects="projects"
-      v-model:selectedProject="currentProject"
+  <ProjectAdminSidebar 
+    :projects="[currentProject]"
+    v-model:selectedProject="currentProject"
+  />
+  <div id="main-content" class="d-flex flex-grow-1">
+    <router-view 
+      class="ml-5"
+      :active-project="currentProject"
+      :projects="[currentProject]"
+      @select-project="(project) => currentProject = project"
     />
-    <div id="main-content" class="d-flex flex-grow-1">
-      <router-view 
-        class="ml-5"
-        :active-project="currentProject"
-        :projects="projects"
-        @select-project="(project) => currentProject = project"
-      />
-    </div>
+  </div>
 
   <v-snackbar v-model="snackbar.value" rounded="pill">
     {{ snackbar.text }}

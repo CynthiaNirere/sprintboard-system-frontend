@@ -90,7 +90,7 @@ const router = createRouter({
         {
           path: "projects",
           name: "myProjects",
-          component: () => import("./views/UserProject.vue"),
+          component: () => import("./views/MyProjects.vue"),
         },
         {
           path: "profile",

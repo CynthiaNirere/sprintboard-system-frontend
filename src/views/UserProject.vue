@@ -1,39 +1,30 @@
 <script setup>
-import { ref, onMounted } from "vue";
-import ProjectServices from "../services/projectServices.js";
+import { ref, computed, watch } from "vue";
+import { useRouter } from "vue-router";
 import SprintServices from "../services/sprintServices.js";
 
-const user = ref(null);
-const projects = ref([]);
-const selectedProject = ref(null);
+const props = defineProps(['activeProject', 'projects']);
+const emit = defineEmits(['select-project']);
+const router = useRouter();
+
 const sprints = ref([]);
 const snackbar = ref({ value: false, color: "", text: "" });
 
-onMounted(async () => {
-  user.value = JSON.parse(localStorage.getItem("user"));
-  await getProjects();
+// From the confirmed query shape: project.users[0].project_member.projectRole
+const myRoleOnProject = computed(() => {
+  return props.activeProject?.users?.[0]?.project_member?.projectRole || null;
 });
 
-async function getProjects() {
-  await ProjectServices.getUserProjects(user.value.id)
-    .then((response) => {
-      projects.value = response.data;
-      if (projects.value.length > 0) {
-        selectedProject.value = projects.value[0];
-        getSprints();
-      }
-    })
-    .catch((error) => {
-      snackbar.value.value = true;
-      snackbar.value.color = "error";
-      snackbar.value.text =
-        error.response?.data?.message || "Error loading projects.";
-    });
-}
+watch(() => props.activeProject, async (newProject) => {
+  if (newProject) {
+    await getSprints();
+  } else {
+    sprints.value = [];
+  }
+}, { immediate: true });
 
 async function getSprints() {
-  if (!selectedProject.value) return;
-  await SprintServices.getSprintsByProject(selectedProject.value.id)
+  await SprintServices.getSprintsByProject(props.activeProject.id)
     .then((response) => {
       sprints.value = response.data;
     })
@@ -43,6 +34,14 @@ async function getSprints() {
       snackbar.value.text =
         error.response?.data?.message || "Error loading sprints.";
     });
+}
+
+function setProject(project) {
+  emit('select-project', project);
+}
+
+function manageProject() {
+  router.push({ name: "projectAdminOverview", params: { id: props.activeProject.id } });
 }
 
 function formatDate(d) {
@@ -55,23 +54,31 @@ function formatDate(d) {
     <v-row class="mb-2 align-center">
       <v-col>
         <v-card-title class="pl-0 text-h4 font-weight-bold">
-          {{ selectedProject?.name || "My Projects" }}
+          {{ props.activeProject?.name || "My Projects" }}
         </v-card-title>
-        <p class="text-body-1 text-medium-emphasis" v-if="selectedProject">
-          {{ selectedProject.description || "No description" }}
+        <p class="text-body-1 text-medium-emphasis" v-if="props.activeProject">
+          {{ props.activeProject.description || "No description" }}
         </p>
       </v-col>
       <v-col cols="12" sm="4">
         <v-select
-          v-model="selectedProject"
-          :items="projects"
+          :model-value="props.activeProject"
+          :items="props.projects"
           item-title="name"
           return-object
           label="Working in"
           variant="outlined"
           density="comfortable"
-          @update:modelValue="getSprints"
+          @update:modelValue="setProject"
         ></v-select>
+      </v-col>
+    </v-row>
+
+    <v-row v-if="myRoleOnProject === 'PROJECT_ADMIN'" class="mt-n4 mb-2">
+      <v-col>
+        <v-btn color="primary" prepend-icon="mdi-cog-outline" @click="manageProject">
+          Manage Project
+        </v-btn>
       </v-col>
     </v-row>
 

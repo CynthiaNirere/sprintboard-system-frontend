@@ -32,6 +32,21 @@ const router = createRouter({
           component: () => import("./views/StoryboardAdmin.vue"),
         },
         {
+          path: "sprints",
+          name: "adminSprints",
+          component: () => import("./views/Sprints.vue"),
+        },
+        {
+          path: "backlog",
+          name: "backlog",
+          component: () => import("./views/BacklogView.vue"),
+        },
+        {
+          path: "team-management",
+          name: "teamManagement",
+          component: () => import("./views/TeamManagement.vue"),
+        },
+        {
           path: "projects",
           name: "adminProjects",
           component: () => import("./views/ProjectsView.vue"),
@@ -42,29 +57,14 @@ const router = createRouter({
           component: () => import("./views/ProjectsView.vue"),
         },
         {
-          path: "my-projects",
-          name: "userProjects",
-          component: () => import("./views/UserProject.vue"),
-        },
-        {
-          path: "team-management",
-          name: "teamManagement",
-          component: () => import("./views/TeamManagement.vue"),
+          path: "users",
+          name: "users",
+          component: () => import("./views/Users.vue"),
         },
         {
           path: "profile",
           name: "profile",
           component: () => import("./views/Profile.vue"),
-        },
-        {
-          path: "backlog",
-          name: "backlog",
-          component: () => import("./views/BacklogView.vue"),
-        },
-        {
-          path: "sprints",
-          name: "adminSprints",
-          component: () => import("./views/Sprints.vue"),
         },
       ]
     },
@@ -80,6 +80,16 @@ const router = createRouter({
           component: () => import("./views/Storyboard.vue"),
         },
         {
+          path: "sprints",
+          name: "sprints",
+          component: () => import("./views/Sprints.vue"),
+        },
+        {
+          path: "backlog",
+          name: "userBacklog",
+          component: () => import("./views/BacklogView.vue"),
+        },
+        {
           path: "projects",
           name: "myProjects",
           component: () => import("./views/MyProjects.vue"),
@@ -89,16 +99,6 @@ const router = createRouter({
           name: "userProfile",
           component: () => import("./views/Profile.vue"),
         },
-        {
-          path: "backlog",
-          name: "userBacklog",
-          component: () => import("./views/BacklogView.vue"),
-        },
-        {
-          path: "sprints",
-          name: "sprints",
-          component: () => import("./views/Sprints.vue"),
-        },
       ]
     },
      // PROJECT-ADMIN — one specific project
@@ -106,7 +106,7 @@ const router = createRouter({
       path: "/project-admin/:id",
       name: "projectAdminLayout",
       component: () => import("./components/ProjectAdminLayout.vue"),
-      redirect: (to) => ({ name: "projectAdminOverview", params: { id: to.params.id } }),
+      redirect: { name: "projectAdminOverview" },
       children: [
         {
           path: "storyboard",

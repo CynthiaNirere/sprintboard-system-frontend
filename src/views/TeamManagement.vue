@@ -133,21 +133,26 @@ async function deleteProjectMember(userId) {
 }
 
 const filteredUsers = computed(() => {
-  return users.value.filter(user =>
+  let result = users.value.filter(user =>
     !projectMembers.value.some(projectMember => projectMember.id === user.id)
   );
+  return result.sort((a, b) => a.firstName.localeCompare(b.firstName));
 });
+
+const sortedProjectMembers = computed(() => {
+  return projectMembers.value.sort((a, b) => a.firstName.localeCompare(b.firstName));
+})
 
 const searchNameAndEmail = (filterableItemValue, searchTerm, internalItemObject) => {
   if (!searchTerm) {
     return true;
   }
 
-  const userFullName = `${internalItemObject.raw.firstName} ${internalItemObject.raw.lastName}`.toLowerCase();
+  const userFullName = `${internalItemObject.raw.firstName.trim()} ${internalItemObject.raw.lastName.trim()}`.toLowerCase();
   const userEmail = `${internalItemObject.raw.email}`.toLowerCase();
-  const search = searchTerm.toLowerCase();
+  const searchInput = searchTerm.toLowerCase();
 
-  return userFullName.includes(searchTerm) || userEmail.includes(searchTerm);
+  return userFullName.includes(searchInput) || userEmail.includes(searchInput);
 }
 
 function formatRole(role) {
@@ -217,7 +222,7 @@ function ableToDelete(projectMember) {
       <v-card class="rounded-lg mt-4 mb-6 border-thin" variant="flat">
         <v-table>
           <tbody>
-            <tr v-for="projectMember in projectMembers" :key="projectMember.id">
+            <tr v-for="projectMember in sortedProjectMembers" :key="projectMember.id">
               <td>
                 <div class="d-flex justify-space-between py-2">
                   <div class="d-flex align-center ga-4 py-2 ml-2">

@@ -38,20 +38,18 @@ async function getAllProjects() {
 </script>
 
 <template>
-    <div class="d-flex">
-    <AdminSidebar 
+  <AdminSidebar 
+    :projects="projects"
+    v-model:selectedProject="currentProject"
+  />
+  <div id="main-content" class="d-flex flex-grow-1">
+    <router-view 
+      class="mx-5"
+      :active-project="currentProject"
       :projects="projects"
-      v-model:selectedProject="currentProject"
+      @select-project="(project) => currentProject = project"
+      @project-added="getAllProjects()"
     />
-    <div id="main-content" class="flex-grow-1">
-      <div class="d-flex flex-column">
-        <router-view 
-          :active-project="currentProject"
-          :projects="projects"
-          @select-project="(project) => currentProject = project"
-        />
-      </div>
-    </div>
   </div>
 
   <v-snackbar v-model="snackbar.value" rounded="pill">
@@ -63,10 +61,3 @@ async function getAllProjects() {
     </template>
   </v-snackbar>
 </template>
-
-<style scoped>
-#main-content {
-  margin-left: 0;
-  padding-left: 0;
-}
-</style>

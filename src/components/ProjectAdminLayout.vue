@@ -42,7 +42,7 @@ async function getProject(projectId) {
   />
   <div id="main-content" class="d-flex flex-grow-1">
     <router-view 
-      class="ml-5"
+      class="mx-5"
       :active-project="currentProject"
       :projects="[currentProject]"
       @select-project="(project) => currentProject = project"
@@ -58,10 +58,3 @@ async function getProject(projectId) {
     </template>
   </v-snackbar>
 </template>
-
-<style scoped>
-#main-content {
-  margin-left: 0;
-  padding-left: 0;
-}
-</style>

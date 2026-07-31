@@ -45,7 +45,7 @@ function formatRole(role) {
 </script>
 
 <template>
-  <v-container>
+  <v-container fluid>
     <div id="body">
       <h3 :class="pageHeader">My Projects</h3>
       <p class="mt-2 mb-6 font-weight-light" style="color:rgba(101, 101, 101)">Projects you've been added to, and your role on each. Only an Admin can 

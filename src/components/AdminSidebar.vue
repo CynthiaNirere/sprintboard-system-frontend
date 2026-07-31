@@ -11,7 +11,6 @@ const title = ref("SprintBoard");
 const sidebarHeader = ref('sidebar-header')
 const logoutButton = ref('logout-button');
 const avatarOutline = ref('avatar-outline');
-const hideSelect = ref('hide-select');
 const props = defineProps(['projects', 'selectedProject']);
 const emit = defineEmits(['update:selectedProject']);
 
@@ -62,7 +61,6 @@ function formatRole(role) {
         item-title="name"
         return-object
         class="mx-5 mt-2 flex-grow-0"
-        :class="hideSelect"
         bg-color="#DEE6FA"
         rounded="lg"
         density="compact"
@@ -73,7 +71,10 @@ function formatRole(role) {
         append-inner-icon="mdi-chevron-down"
       >
         <template #selection="{item}">
-          <span style="color: #2E4DC9; font-weight: 500">{{ item.title }}</span>
+          <span 
+            style="color: #2E4DC9; font-weight: 500"
+            class="text-truncate"  
+          >{{ item.title }}</span>
         </template>
       </v-select>
   
@@ -240,11 +241,5 @@ function formatRole(role) {
   background-color: rgb(222, 230, 250, 0.3);
   color: #2E4DC9;
   font-weight: 600;
-}
-
-.hide-select {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 </style>

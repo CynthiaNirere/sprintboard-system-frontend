@@ -5,7 +5,6 @@ import projectServices from "../services/projectServices.js";
 
 const user = ref(null);
 const users = ref([]);
-const search = ref("");
 const props = defineProps(['activeProject', 'projects']);
 const projectMembers = ref([]);
 const newProjectMember = ref({
@@ -21,13 +20,6 @@ const projectRoles = [
     title: "Developer", value: "DEVELOPER"
   }
 ];
-
-const userSearchBar = ref('user-search-bar');
-const pageHeader = ref('page-header');
-const selectProjectRole = ref('select-project-role');
-const selectUser = ref('select-user');
-const avatarOutline = ref('avatar-outline');
-const deleteBackground = ref('delete-background');
 
 const snackbar = ref({
   value: false,
@@ -86,22 +78,21 @@ async function addProjectMember() {
   }
 
   await projectServices.addProjectMember(props.activeProject.id, newProjectMember.value)
-    .then(() => {
+    .then(async (response) => {
       snackbar.value.value = true;
       snackbar.value.color = "green";
       snackbar.value.text = `User ${newProjectMember.value.userId} successfully added to ${props.activeProject.name}!`;
+
+      await getProjectMembers(props.activeProject.id);
       newProjectMember.value.userId = null;
       newProjectMember.value.projectRole = "DEVELOPER";
-      search.value = "";
     })
     .catch((error) => {
       console.log(error);
       snackbar.value.value = true;
       snackbar.value.color = "error";
-      snackbar.value.text = error.response.data.message || `Error adding user ${newProjectMember.value.userId} to ${props.activeProject.name}.`;
+      snackbar.value.text = error.response?.data?.message || `Error adding user ${newProjectMember.value.userId} to ${props.activeProject.name}.`;
     });
-
-  await getProjectMembers(props.activeProject.id);
 }
 
 async function updateProjectMember(userId, updatedRole) {
@@ -111,10 +102,11 @@ async function updateProjectMember(userId, updatedRole) {
   };
 
   await projectServices.updateProjectMember(props.activeProject.id, projectMemberData)
-    .then(() => {
+    .then(async (response) => {
       snackbar.value.value = true;
       snackbar.value.color = "green";
       snackbar.value.text = `Role for user ${userId} updated successfully!`;
+      await getProjectMembers(props.activeProject.id);
     })
     .catch((error) => {
       console.log(error);
@@ -122,16 +114,15 @@ async function updateProjectMember(userId, updatedRole) {
       snackbar.value.color = "error";
       snackbar.value.text = error.response.data.message || `Error updating role for user ${userId}`;
     });
-
-  await getProjectMembers(props.activeProject.id);
 }
 
 async function deleteProjectMember(userId) {
   await projectServices.deleteProjectMember(props.activeProject.id, userId)
-    .then(() => {
+    .then(async (response) => {
       snackbar.value.value = true;
       snackbar.value.color = "green";
       snackbar.value.text = `User ${userId} successfully removed from ${props.activeProject.name}!`;
+      await getProjectMembers(props.activeProject.id);
     })
     .catch((error) => {
       console.log(error);
@@ -139,42 +130,25 @@ async function deleteProjectMember(userId) {
       snackbar.value.color = "error";
       snackbar.value.text = error.response.data.message || `Error removing user ${userId} from ${props.activeProject.name}.`;
     });
-
-  await getProjectMembers(props.activeProject.id);
 }
 
 const filteredUsers = computed(() => {
-  const availableProjectMembers = users.value.filter(user =>
+  return users.value.filter(user =>
     !projectMembers.value.some(projectMember => projectMember.id === user.id)
   );
-
-  if (!search.value) return availableProjectMembers;
-
-  const searchInput = search.value.toLowerCase();
-  return availableProjectMembers.filter(user => {
-    const userFullName = `${user.firstName} ${user.lastName}`.toLowerCase();
-    const userEmail = `${user.email}`.toLowerCase();
-    return userFullName.includes(searchInput) || userEmail.includes(searchInput);
-  });
 });
 
-watch(filteredUsers, (updatedList) => {
-  if (updatedList.length > 0) {
-    if (!search.value) {
-      newProjectMember.value.userId = updatedList[0].id;
-    }
+const searchNameAndEmail = (filterableItemValue, searchTerm, internalItemObject) => {
+  if (!searchTerm) {
+    return true;
+  }
 
-    else {
-      const selectedUserInList = updatedList.some(user => user.id === newProjectMember.value.userId);
-      if (!selectedUserInList) {
-        newProjectMember.value.userId = updatedList[0].id;
-      }
-    }
-  }
-  else {
-    newProjectMember.value.userId = null;
-  }
-});
+  const userFullName = `${internalItemObject.raw.firstName} ${internalItemObject.raw.lastName}`.toLowerCase();
+  const userEmail = `${internalItemObject.raw.email}`.toLowerCase();
+  const search = searchTerm.toLowerCase();
+
+  return userFullName.includes(searchTerm) || userEmail.includes(searchTerm);
+}
 
 function formatRole(role) {
   if (role.includes(' ')) {
@@ -229,10 +203,10 @@ function ableToDelete(projectMember) {
 </script>
 
 <template>
-  <v-container>
+  <v-container fluid>
     <div id="body">
-      <h3 :class="pageHeader">Team Management & Roles</h3>
-      <p class="mt-2 mb-4 font-weight-light" style="color:rgba(101, 101, 101)">Manage who's on {{ props.activeProject?.name }} and their project role (Project Admin/Developer).
+      <h3 class="page-header">Team Management & Roles</h3>
+      <p class="mt-2 mb-6 font-weight-light" style="color:rgba(101, 101, 101)">Manage who's on {{ props.activeProject?.name }} and their project role (Project Admin/Developer).
         Admins can create a brand-new user account by navigating to Users under Workspace.
       </p>
       <span class="text-uppercase font-weight-bold" style="font-size: smaller; color: rgba(95, 95, 85, 0.92); letter-spacing: 2%;">{{ props.activeProject?.name }} Members</span>
@@ -248,7 +222,7 @@ function ableToDelete(projectMember) {
                 <div class="d-flex justify-space-between py-2">
                   <div class="d-flex align-center ga-4 py-2 ml-2">
                     <div id="userInitials">
-                      <v-avatar :class="avatarOutline" class="mx-auto text-center" color="#1740E3" size="small">
+                      <v-avatar class="mx-auto text-center avatar-outline" color="#1740E3" size="small">
                         <span class="white--text font-weight-bold">{{
                           `${projectMember.firstName.charAt(0)}${projectMember.lastName.charAt(0)}`
                         }}</span>
@@ -261,7 +235,7 @@ function ableToDelete(projectMember) {
                     </div>
                   </div>
                   
-                  <div class="d-flex align-center ga-4 py-2 mr-2">
+                  <div class="d-flex align-center ga-6 py-2 mr-2">
                     <div>
                       <v-chip 
                         :style="isUserProjectAdmin(projectMember.project_member.projectRole) ? 'background-color: #EFE6FC; color: #5D3CA6' : 'background-color: #DEE6FA; color: #2E4DC9'"
@@ -280,11 +254,12 @@ function ableToDelete(projectMember) {
                         item-title="title"
                         item-value="value"
                         density="compact"
-                        variant="flat"
+                        variant="solo"
+                        flat
                         hide-details
                         bg-color="white"
                         rounded="lg"
-                        :class="selectProjectRole"
+                        class="select-project-role"
                         :menu-icon="null"
                         append-inner-icon="mdi-chevron-down"
                         @update:modelValue="updateProjectMember(projectMember.id, $event)"
@@ -299,8 +274,7 @@ function ableToDelete(projectMember) {
                           opacity: ableToDelete(projectMember) ? 1 : 0.3,
                           cursor: ableToDelete(projectMember) ? 'pointer' : 'not-allowed',
                         }"
-                        :class="deleteBackground" 
-                        class="d-flex justify-center align-center" 
+                        class="d-flex justify-center align-center delete-background" 
                         @click="ableToDelete(projectMember) ? deleteProjectMember(projectMember.id) : null"
                       >
                         <v-icon 
@@ -318,73 +292,78 @@ function ableToDelete(projectMember) {
           </tbody>
         </v-table>
       </v-card>
-      
-      <v-text-field
-        v-model="search"
-        placeholder="Search users by name or email to add..."
-        prepend-inner-icon="mdi-magnify"
-        variant="plain"
-        density="compact"
-        hide-details
-        clearable
-        class="my-2 pb-2 pl-2"
-        :class="userSearchBar"
-        ></v-text-field>    
 
-        <div class="d-flex w-50 ga-3 mt-6 align-center">
-          <div>
-            <v-select
-              v-model="newProjectMember.userId"
-              :items="filteredUsers"
-              :item-title="item => (item.firstName && item.lastName) ? `${item.firstName} ${item.lastName}` : item.email"
-              item-value="id"
-              density="compact"
-              variant="flat"
-              hide-details
-              bg-color="white"
-              rounded="lg"
-              :class="selectUser"
-              :menu-icon="null"
-              append-inner-icon="mdi-chevron-down"
-              placeholder="Select a user"
-              no-data-text="No users found"
-            >
-            </v-select>
-          </div>
-
-          <div>
-            <v-select
-              v-model="newProjectMember.projectRole"
-              :items="projectRoles"
-              item-title="title"
-              item-value="value"
-              density="compact"
-              variant="flat"
-              hide-details
-              bg-color="white"
-              rounded="lg"
-              :class="selectProjectRole"
-              :menu-icon="null"
-              append-inner-icon="mdi-chevron-down"
-            >
-            </v-select>
-          </div>
-        
-          <div>
-            <v-btn
-              variant="flat"
-              class="border-thin d-flex justify-center align-center px-4 py-6 text-none"
-              style="background-color: #F4F4F4;"
-              rounded="lg"
-              prepend-icon="mdi-plus"
-              @click="addProjectMember()"
-            >
-              Add to project
-            </v-btn>
-          </div>
-        
+      <div class="d-flex ga-5 mt-6 align-center">
+        <div id="combo-box">
+          <v-autocomplete
+            v-model="newProjectMember.userId"
+            placeholder="Search users by name or email to add..."
+            :items="filteredUsers"
+            :item-title="item => (item.firstName && item.lastName) ? `${item.firstName} ${item.lastName}` : item.email"
+            item-value="id"
+            variant="plain"
+            density="compact"
+            hide-details
+            clearable
+            class="pb-2 px-2"
+            color="#1740E3"
+            :menu-icon="null"
+            auto-select-first
+            prepend-inner-icon="mdi-magnify"
+            no-data-text="No users found"
+            :custom-filter="searchNameAndEmail"
+          >  
+            <template v-slot:item="{ props, item }">
+              <v-list-item 
+                v-bind="props"
+                :title="`${item.raw.firstName} ${item.raw.lastName}`"
+                :subtitle="`${item.raw.email}`"
+                class="combo-box-item"
+              >
+                <template v-slot:prepend>
+                  <v-avatar class="mx-auto text-center mr-2 avatar-outline" color="#1740E3" size="x-small">
+                    <span class="white--text font-weight-bold" style="font-size: 0.7rem;">{{
+                      `${item.raw.firstName.charAt(0)}${item.raw.lastName.charAt(0)}`
+                    }}</span>
+                  </v-avatar>
+                </template>
+              </v-list-item>
+            </template>
+          </v-autocomplete>
         </div>
 
+        <div>
+          <v-select
+            v-model="newProjectMember.projectRole"
+            :items="projectRoles"
+            item-title="title"
+            item-value="value"
+            density="compact"
+            variant="solo"
+            flat
+            hide-details
+            bg-color="white"
+            rounded="lg"
+            class="select-project-role"
+            :menu-icon="null"
+            append-inner-icon="mdi-chevron-down"
+          >
+          </v-select>
+        </div>
+      
+        <div>
+          <v-btn
+            variant="flat"
+            class="border-thin d-flex justify-center align-center px-4 py-6 text-none"
+            style="background-color: #F4F4F4;"
+            rounded="lg"
+            prepend-icon="mdi-plus"
+            @click="addProjectMember()"
+          >
+            Add to project
+          </v-btn>
+        </div>
+      </div>
     </div>
 
     <v-snackbar v-model="snackbar.value" rounded="pill">
@@ -406,7 +385,7 @@ function ableToDelete(projectMember) {
 
 .page-header {
   letter-spacing: 2%;
-  margin-bottom: 0.8rem;
+  margin-bottom: 0.5rem;
 }
 
 .avatar-outline {
@@ -415,24 +394,11 @@ function ableToDelete(projectMember) {
   border-radius: 50%;
 }
 
-.user-search-bar {
-  width: 35%;
-  background-color: white;
-  border: 1px solid rgba(153, 153, 153, 0.658);
-  border-radius: 10px;
-}
-
-.select-user, .select-project-role {
+.select-project-role {
   width: 170px;
   color: white;
   border: 1px solid rgba(153, 153, 153, 0.658);
   border-radius: 8px;
-}
-
-.select-user {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .delete-background {
@@ -440,5 +406,16 @@ function ableToDelete(projectMember) {
   border-radius: 25%;
   width: 30px;
   height: 30px;
+}
+
+#combo-box {
+  width: 33%;
+  background-color: white;
+  border: 1px solid rgba(153, 153, 153, 0.658);
+  border-radius: 0.7rem;
+}
+
+.combo-box-item:hover {
+  background-color: #f1f5ff;
 }
 </style>

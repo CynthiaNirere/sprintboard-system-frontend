@@ -111,7 +111,7 @@ function addTicket(status) {
 </script>
 
 <template>
-  <v-container>
+  <v-container fluid>
     <div id="body" v-if="props.activeProject">
       <div class="d-flex ga-4">
         <v-select

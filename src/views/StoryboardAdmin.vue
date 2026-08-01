@@ -117,7 +117,7 @@ function addTicket(status){
 </script>
 
 <template>
-  <v-container>
+  <v-container fluid>
     <div id="body">
       <div class="d-flex ga-4">
         

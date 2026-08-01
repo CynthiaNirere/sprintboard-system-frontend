@@ -21,7 +21,7 @@ const nameRules = [(v) => !!v || "Project name is required"];
 const user = JSON.parse(localStorage.getItem("user"));
 const isAdmin = user?.globalRole === "ADMIN";
 
-const emit = defineEmits(['select-project']);
+const emit = defineEmits(['select-project', 'project-added']);
 
 onMounted(async () => {
   await getProjects();
@@ -53,6 +53,7 @@ async function addProject() {
       snackbar.value.color = "success";
       snackbar.value.text = "Project created successfully!";
       getProjects();
+      emit('project-added');
     })
     .catch((error) => {
       snackbar.value.value = true;
@@ -112,7 +113,7 @@ function openProject(id) {
 </script>
 
 <template>
-  <v-container>
+  <v-container fluid>
     <v-row class="mb-2 align-center">
       <v-col>
         <v-card-title class="pl-0 text-h4 font-weight-bold">

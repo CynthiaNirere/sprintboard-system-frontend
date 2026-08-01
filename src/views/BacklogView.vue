@@ -174,7 +174,7 @@ function showError(error) {
 </script>
 
 <template>
-  <v-container>
+  <v-container fluid>
     <v-row class="mb-2 align-center">
       <v-col>
         <v-card-title class="pl-0 text-h4 font-weight-bold">Backlog</v-card-title>

@@ -32,7 +32,6 @@ async function getAllProjects() {
       snackbar.value.value = true;
       snackbar.value.color = "error";
       snackbar.value.text = error.response?.data?.message || "Error loading projects.";
-      snackbar.value.text = error.response?.data?.message || "Error loading projects.";
     });
 }
 </script>
@@ -49,6 +48,7 @@ async function getAllProjects() {
       :projects="projects"
       @select-project="(project) => currentProject = project"
       @project-added="getAllProjects()"
+      @project-deleted="getAllProjects()"
     />
   </div>
 

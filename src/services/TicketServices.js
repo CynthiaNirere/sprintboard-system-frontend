@@ -13,6 +13,9 @@ export default {
   getTicketsForSprint(sprintId) {
     return apiClient.get("ticket/sprint/" + sprintId);
   },
+  getTicketsForUser(userId) {
+    return apiClient.get("ticket/user/" + userId);
+  },
   addTicket(ticket) {
     return apiClient.post("ticket", ticket);
   },

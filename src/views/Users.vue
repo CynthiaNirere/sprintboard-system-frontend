@@ -9,10 +9,11 @@ const users = ref([]);
 const form = ref(null);
 const search = ref("");
 const userActivityLogs = ref([]);
-const adminChip = ref('admin-chip');
-const userChip = ref('user-chip');
+// const adminChip = ref('admin-chip');
+// const userChip = ref('user-chip');
 const tickets = ref([]);
 const logSearch = ref("");
+const itemsPerPage = ref(5);
 
 const checkRequired = (value) => {
   if (value) return true;
@@ -30,6 +31,7 @@ const actionsList = [
   "All actions",
   "Login",
   "Logout",
+  "User created",
   "Global role changed",
   "Project role changed",
   "Project created",
@@ -40,6 +42,7 @@ const actionsList = [
   "Ticket updated",
   "Ticket deleted",
   "Sprint created",
+  "Sprint updated",
   "Sprint deleted",
   "GitHub repo linked",
   "Board status updated",
@@ -53,6 +56,7 @@ const actionsList = [
 const actionValuesAndDesign = [
   { value: "Login", mdiIcon: 'mdi-login', bgColor: "#EFEFEC", textColor: "#3D8A60" },
   { value: "Logout", mdiIcon: 'mdi-logout', bgColor: "#EFEFEC", textColor: "#81889A" },
+  { value: "User created", mdiIcon: 'mdi-account-plus-outline', bgColor: "#EFEFEC", textColor: "#3058CB" },
   { value: "Global role changed", mdiIcon: 'mdi-shield-outline', bgColor: "#EFEFEC", textColor: "#7647EB" },
   { value: "Project role changed", mdiIcon: 'mdi-shield-outline', bgColor: "#EFEFEC", textColor: "#7647EB" },
   { value: "Project created", mdiIcon: 'mdi-folder-open-outline', bgColor: "#EFEFEC", textColor: "#3058CB" },
@@ -63,6 +67,7 @@ const actionValuesAndDesign = [
   { value: "Ticket updated", mdiIcon: 'mdi-information-outline', bgColor: "#EFEFEC", textColor: "#4C5160" },
   { value: "Ticket deleted", mdiIcon: 'mdi-trash-can-outline', bgColor: "#EFEFEC", textColor: "#B5362C" },
   { value: "Sprint created", mdiIcon: 'mdi-rocket-launch-outline', bgColor: "#EFEFEC", textColor: "#3058CB" },
+  { value: "Sprint updated", mdiIcon: 'mdi-information-outline', bgColor: "#EFEFEC", textColor: "#B28415" },
   { value: "Sprint deleted", mdiIcon: 'mdi-trash-can-outline', bgColor: "#EFEFEC", textColor: "#B5362C" },
   { value: "GitHub repo linked", mdiIcon: 'mdi-github', bgColor: "#EFEFEC", textColor: "#14171F" },
   { value: "Board status updated", mdiIcon: 'mdi-cog-outline', bgColor: "#EFEFEC", textColor: "#B28415" },
@@ -179,11 +184,11 @@ onMounted(async () => {
 
 async function getUsers() {
   await UserServices.getUser()
-  .then((response) => {
-    users.value = response.data;
-  })
-  .catch((error) => {
-    console.log(error);
+    .then((response) => {
+      users.value = response.data;
+    })
+    .catch((error) => {
+      console.log(error);
       users.value = [];
       snackbar.value.value = true;
       snackbar.value.color = "error";
@@ -193,24 +198,25 @@ async function getUsers() {
 
 async function getUserActivityLogs() {
   await UserActivityLogServices.getUserActivityLogs()
-  .then((response) => {
-    userActivityLogs.value = response.data;
-  })
-  .catch((error) => {
-    console.log(error);
-    userActivityLogs.value = [];
-    snackbar.value.value = true;
-    snackbar.value.color = "error";
-    snackbar.value.text = error.response?.data?.message || "Error loading user activity log";     
-  });
+    .then((response) => {
+      userActivityLogs.value = response.data;
+    })
+    .catch((error) => {
+      console.log(error);
+      userActivityLogs.value = [];
+      snackbar.value.value = true;
+      snackbar.value.color = "error";
+      snackbar.value.text = error.response?.data?.message || "Error loading user activity log";     
+    });
 }
 
 async function updateUser(userId, user) {
   await UserServices.updateUser(userId, user)
-  .then((response) => {
-    snackbar.value.value = true;
-    snackbar.value.color = "green";
+    .then(async (response) => {
+      snackbar.value.value = true;
+      snackbar.value.color = "green";
       snackbar.value.text = `User ${userId} updated successfully!`;
+      await getUserActivityLogs();
     })
     .catch((error) => {
       console.log(error);
@@ -218,7 +224,7 @@ async function updateUser(userId, user) {
       snackbar.value.color = "error";
       snackbar.value.text = error.response?.data?.message || "Error loading user";
     });
-  }
+}
   
   async function addUser() {
     const validation = await form.value.validate();
@@ -226,23 +232,24 @@ async function updateUser(userId, user) {
     if (validation.valid) {
       newUser.value.username = `${newUser.value.firstName}.${newUser.value.lastName}`; 
       await UserServices.addUser(newUser.value)
-      .then(async (data) => {
-        snackbar.value.value = true;
-        snackbar.value.color = "green";
-        snackbar.value.text = "User successfully added!";
-        
-        await getUsers();
-        form.value.reset();
-        newUser.value.firstName = "";
-        newUser.value.lastName = "";
-        newUser.value.email = "";
-      })
-      .catch((error) => {
-        console.log(error);
-        snackbar.value.value = true;
-        snackbar.value.color = "error";
-        snackbar.value.text = error.response.data.message || "Error adding user";
-      });
+        .then(async (data) => {
+          snackbar.value.value = true;
+          snackbar.value.color = "green";
+          snackbar.value.text = "User successfully added!";
+          
+          await getUsers();
+          await getUserActivityLogs();
+          form.value.reset();
+          newUser.value.firstName = "";
+          newUser.value.lastName = "";
+          newUser.value.email = "";
+        })
+        .catch((error) => {
+          console.log(error);
+          snackbar.value.value = true;
+          snackbar.value.color = "error";
+          snackbar.value.text = error.response.data.message || "Error adding user";
+        });
     }
   }
   
@@ -344,16 +351,16 @@ function closeSnackBar() {
   <v-container fluid>
     <div id="body">
       <h3 class="page-header">Users</h3>
-      <p class="mt-2 mb-6 sub-paragraph">Workspace-wide account management. Global role (Admin/User) controls workspace access &mdash;
+      <p class="mt-2 mb-3 sub-paragraph">Workspace-wide account management. Global role (Admin/User) controls workspace access &mdash;
         project-level roles are set per-project from that project's Team Management tab.
       </p>
       
       <span class="sub-heading">Add New User</span>
-      <p class="mt-2 mb-4 sub-paragraph">Create an account by email so they can be assigned to projects.
+      <p class="mb-3 sub-paragraph">Create an account by email so they can be assigned to projects.
         They can change their display name later from their own Profile.
       </p>
       
-      <v-card id="#add-user-fields" class="rounded-lg border-thin mb-6" variant="flat">
+      <v-card id="#add-user-fields" class="rounded-lg border-thin mb-4" variant="flat">
         <v-form ref="form">
           <div class="d-flex align-center justify-space-between ga-4 px-5">
             <v-text-field id="first-name"
@@ -415,49 +422,55 @@ function closeSnackBar() {
         density="compact"
         hide-details
         clearable
-        class="mt-2 mb-4 pb-2 pl-2 user-search-bar"
+        class="mt-2 mb-3 pb-2 pl-2 user-search-bar"
         prepend-inner-icon="mdi-magnify"
       ></v-text-field>    
 
-      <v-card class="rounded-lg mt-4 mb-6 border-thin" variant="flat">
-        <v-table
+      <v-card class="rounded-lg mt-2 mb-6 border-thin" variant="flat">
+        <v-data-table
+          :items="filteredUsers"
           density="compact"
+          hide-default-header
+          hover
+          no-data-text="No users found"
+          :items-per-page="5"
+          :items-per-page-options="[5, 10, 25, 50, -1]"
         >
-          <tbody>
-            <tr v-for="user in filteredUsers" :key="user.id">
+          <template v-slot:item="{item}">
+            <tr>
               <td>
-                <div class="d-flex justify-space-between py-2">
+                <div class="d-flex justify-space-between py-1">
                   <div class="d-flex align-center ga-4 py-2 ml-2">
                     <div id="userInitials">
                       <v-avatar class="mx-auto text-center avatar-outline" color="#1740E3" size="small">
                         <span class="white--text font-weight-bold">{{
-                          `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`
+                          `${item.firstName.charAt(0)}${item.lastName.charAt(0)}`
                         }}</span>
                       </v-avatar>
                     </div>
                     <div class="d-flex flex-column">
                       <div class="font-weight-bold">
-                        {{ user.firstName }} {{ user.lastName }}
+                        {{ item.firstName }} {{ item.lastName }}
                       </div>
                       <div style="color:rgba(95, 95, 85, 0.92)">
-                        {{ user.email }}
+                        {{ item.email }}
                       </div>
                     </div>
                   </div>
 
                   <div class="d-flex align-center ga-6 py-2 mr-2">
                     <div style="color:rgba(80, 80, 80)">
-                      {{ getTicketCountForUser(user.id) }} active tasks
+                      {{ getTicketCountForUser(item.id) }} active tasks
                     </div>
 
                     <div>
                       <v-chip 
-                        :style="isUserAdmin(user.globalRole) ? 'background-color: #EAF0FE; color: #1E3E9E' : 'background-color: #EFEFEC; color: #80879F'"
+                        :style="isUserAdmin(item.globalRole) ? 'background-color: #EAF0FE; color: #1E3E9E' : 'background-color: #EFEFEC; color: #80879F'"
                         class="font-weight-bold px-3"
                         size="small"
                         variant="flat"
                         >
-                        {{ formatRole(user.globalRole) }}
+                        {{ formatRole(item.globalRole) }}
                       </v-chip> 
                     </div>
                     
@@ -484,12 +497,12 @@ function closeSnackBar() {
                 </div>
               </td>
             </tr>
-          </tbody>
-        </v-table>
+          </template>
+        </v-data-table>
       </v-card>
 
       <span class="sub-heading">Workspace Activity Log</span>
-      <p class="mt-2 mb-4 sub-paragraph">Every meaningful action across the workspace &mdash; separate
+      <p class="mt-1 mb-2 sub-paragraph">Every meaningful action across the workspace &mdash; separate
         from a task's own History tab.
       </p>
 
@@ -517,7 +530,7 @@ function closeSnackBar() {
           class="select-actions"
           :menu-icon="null"
           append-inner-icon="mdi-chevron-down"
-          width="20%"
+          width="22%"
         ></v-select>
 
         <v-select
@@ -538,50 +551,53 @@ function closeSnackBar() {
         ></v-select>
       </div>
 
-      <v-card class="rounded-lg mt-4 mb-6 border-thin" variant="flat">
-        <v-table
+      <v-card class="rounded-lg mt-3 mb-6 border-thin" variant="flat">
+        <v-data-table
+          :items="filteredLogs"
           density="compact"
-          height="33vh"
+          hide-default-header
+          hover
+          no-data-text="No workspace activity logs"
         >
-          <tbody>
-            <tr v-for="activityLog in filteredLogs" :key="activityLog.id">
+          <template v-slot:item="{item}">
+            <tr>
               <td>
                 <div class="d-flex justify-space-between mx-2 py-2">
                   <div class="d-flex align-center ga-4">
                     <div>
                       <v-icon
-                        :color="getMDIIconColor(activityLog.action)"
+                        :color="getMDIIconColor(item.action)"
                       >
-                        {{ getMDIIcon(activityLog.action) }}
+                        {{ getMDIIcon(item.action) }}
                       </v-icon>
                     </div>
                     <div>
-                      <span style="font-weight: bold;">{{ getLogUserFullName(activityLog.userId) }}</span>
-                      {{ activityLog.detail }}
+                      <span style="font-weight: bold;">{{ getLogUserFullName(item.userId) }}</span>
+                      {{ item.detail }}
                     </div>
                   </div>
 
                   <div class="d-flex align-center justify-end chip-and-time">
                     <div class="d-flex justify-end">
                       <v-chip 
-                        :style="getActionValueAndDesign(activityLog.action)"
+                        :style="getActionValueAndDesign(item.action)"
                         class="font-weight-bold px-3"
                         size="small"
                         variant="flat"
                         >
-                        {{ activityLog.action }}
+                        {{ item.action }}
                       </v-chip> 
                     </div>
                     
                     <div id="time" class="d-flex justify-end">
-                      {{ formatLogTime(activityLog.createdAt) }}
+                      {{ formatLogTime(item.createdAt) }}
                     </div>
                   </div>
                 </div>
               </td>
             </tr>
-          </tbody>
-        </v-table>
+          </template>
+        </v-data-table>
       </v-card>     
     </div>
 
@@ -618,13 +634,13 @@ function closeSnackBar() {
   flex-direction: column;
 }
 
-.admin-chip {
+/* .admin-chip {
   text-transform: lowercase;
 }
 
 .user-chip {
   text-transform: lowercase;
-}
+} */
 
 .user-search-bar, .log-search-bar {
   background-color: white;
@@ -668,10 +684,10 @@ function closeSnackBar() {
 
 .chip-and-time {
   width: 35%;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 #time {
-  width: 25%;
+  width: 20%;
 }
 </style>

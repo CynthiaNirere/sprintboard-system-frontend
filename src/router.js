@@ -94,6 +94,7 @@ const router = createRouter({
         },
       ]
     },
+     // PROJECT-ADMIN — one specific project
     {
       path: "/project-admin/:id",
       name: "projectAdminLayout",

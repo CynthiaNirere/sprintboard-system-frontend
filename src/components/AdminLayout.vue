@@ -44,7 +44,7 @@ async function getAllProjects() {
   />
   <div id="main-content" class="d-flex flex-grow-1">
     <router-view 
-      class="mx-5"
+      class="mx-4"
       :active-project="currentProject"
       :projects="projects"
       @select-project="(project) => currentProject = project"

@@ -2,6 +2,7 @@
 import { onMounted, ref, computed } from "vue";
 import UserServices from "../services/UserServices.js";
 import UserActivityLogServices from "../services/UserActivityLogServices.js";
+import TicketServices from "../services/TicketServices.js";
 
 const user = ref(null);
 const users = ref([]);
@@ -10,9 +11,20 @@ const search = ref("");
 const userActivityLogs = ref([]);
 const adminChip = ref('admin-chip');
 const userChip = ref('user-chip');
-const userSearchBar = ref('user-search-bar');
-const activeTasks = ref('0');
-const selectGlobalRole = ref('select-global-role');
+const tickets = ref([]);
+const logSearch = ref("");
+
+const checkRequired = (value) => {
+  if (value) return true;
+  return "This field is required.";
+};
+const checkEmail = (value) => {
+  if (/.+@.+\..+/.test(value)) return true;
+  return "E-mail must be valid.";
+};
+
+const requiredRules = [checkRequired];
+const emailRules = [checkRequired, checkEmail];
 
 const actionsList = [
   "All actions",
@@ -61,67 +73,22 @@ const actionValuesAndDesign = [
   { value: "Retro item added", mdiIcon: 'mdi-clipboard-text-outline', bgColor: "#EFEFEC", textColor: "#24439D" }
 ];
 
-function getActionValueAndDesign(action) {
-  const selectedAction = actionValuesAndDesign.find(actionValue => actionValue.value === action);
-
-  return { backgroundColor: selectedAction.bgColor, color: selectedAction.textColor };
-}
-
-function getMDIIcon(action) {
-  const selectedAction = actionValuesAndDesign.find(actionValue => actionValue.value === action);
-
-  return selectedAction.mdiIcon;
-}
-
-function getMDIIconColor(action) {
-  const selectedAction = actionValuesAndDesign.find(actionValue => actionValue.value === action);
-
-  return selectedAction.textColor;
-}
-
-function getLogUserFullName(userId) {
-  const loggedUser = users.value.find(u => u.id === userId);
-  return `${loggedUser.firstName} ${loggedUser.lastName}`
-}
-
-function formatLogTime(loggedTime) {
-  const now = new Date();
-  const createdAt = new Date(loggedTime);
-  const secondsDifference = Math.floor((now - createdAt) / 1000);
-  const minutesDifference = Math.floor(secondsDifference / 60);
-  const hoursDifference = Math.floor(minutesDifference / 60);
-  const daysDifference = Math.floor(hoursDifference / 24);
-
-  if (secondsDifference < 60) {
-    return "Just now";
-  }
-  else if (minutesDifference < 60) {
-    return `${minutesDifference} min ago`
-  }
-  else if (hoursDifference < 24) {
-    return `${hoursDifference} hr ago`
-  }
-  else {
-    return daysDifference === 1 ? "1 day ago" : `${daysDifference} days ago`
-  }
-}
-
 const filteredUsers = computed(() => {
   let result = [];
-
+  
   if (!search.value) {
     result = users.value;
   }
   else {
     const searchInput = search.value.toLowerCase();
-  
+    
     result = users.value.filter(user => {
       const userFullName = `${user.firstName} ${user.lastName}`.toLowerCase();
       const userEmail = `${user.email}`.toLowerCase();
       return userFullName.includes(searchInput) || userEmail.includes(searchInput);
     });
   }
-
+  
   return result.sort((a, b) => a.firstName.localeCompare(b.firstName));
 });
 
@@ -158,26 +125,65 @@ const timeRanges = [
     title: "Last 30 days", value: "30 DAYS"
   },
 ];
-
+  
+const selectedAction = ref(actionsList[0]);
+const selectedTimeRange = ref(timeRanges[0].value);
+  
 const snackbar = ref({
   value: false,
   color: "",
   text: "",
 });
 
+const filteredLogs = computed(() => {
+  return userActivityLogs.value.filter(activityLog => {
+    if (selectedAction.value !== "All actions" && activityLog.action !== selectedAction.value) {
+      return false;
+    }
+
+    if (selectedTimeRange.value !== "ALL TIME") {
+      const logData = new Date(activityLog.createdAt).getTime();
+      const now = new Date().getTime();
+
+      const timeDifference = (now - logData) / (1000 * 60 * 60 * 24);
+
+      if (selectedTimeRange.value === "24 HOURS && timeDifference > 1") {
+        return false;
+      }
+      if (selectedTimeRange.value === "7 DAYS && timeDifference > 7") {
+        return false;
+      }
+      if (selectedTimeRange.value === "30 DAYS && timeDifference > 30") {
+        return false;
+      }
+    }
+
+    if (logSearch.value) {
+      const detail = activityLog.detail.toLowerCase();
+      const userFullName = getLogUserFullName(activityLog.userId).toLowerCase();
+      if (!detail.includes(logSearch.value.toLowerCase()) && !userFullName.includes(logSearch.value.toLowerCase())) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+});
+
 onMounted(async () => {
   user.value = JSON.parse(localStorage.getItem("user"));
   await getUsers();
   await getUserActivityLogs();
+  await getTickets();
 });
 
 async function getUsers() {
   await UserServices.getUser()
-    .then((response) => {
-      users.value = response.data;
-    })
-    .catch((error) => {
-      console.log(error);
+  .then((response) => {
+    users.value = response.data;
+  })
+  .catch((error) => {
+    console.log(error);
       users.value = [];
       snackbar.value.value = true;
       snackbar.value.color = "error";
@@ -187,24 +193,24 @@ async function getUsers() {
 
 async function getUserActivityLogs() {
   await UserActivityLogServices.getUserActivityLogs()
-    .then((response) => {
-      userActivityLogs.value = response.data;
-    })
-    .catch((error) => {
-      console.log(error);
-      userActivityLogs.value = [];
-      snackbar.value.value = true;
-      snackbar.value.color = "error";
-      snackbar.value.text = error.response?.data?.message || "Error loading user activity log";     
-    })
+  .then((response) => {
+    userActivityLogs.value = response.data;
+  })
+  .catch((error) => {
+    console.log(error);
+    userActivityLogs.value = [];
+    snackbar.value.value = true;
+    snackbar.value.color = "error";
+    snackbar.value.text = error.response?.data?.message || "Error loading user activity log";     
+  });
 }
 
-async function updateUser(user) {
-  await UserServices.updateUser(user.value.id, user.value)
-    .then((response) => {
-      snackbar.value.value = true;
-      snackbar.value.color = "green";
-      snackbar.value.text = `User ${user.value.id} updated successfully!`;
+async function updateUser(userId, user) {
+  await UserServices.updateUser(userId, user)
+  .then((response) => {
+    snackbar.value.value = true;
+    snackbar.value.color = "green";
+      snackbar.value.text = `User ${userId} updated successfully!`;
     })
     .catch((error) => {
       console.log(error);
@@ -212,10 +218,50 @@ async function updateUser(user) {
       snackbar.value.color = "error";
       snackbar.value.text = error.response?.data?.message || "Error loading user";
     });
-}
-
-function isUserAdmin(role) {
-  return role === "ADMIN";
+  }
+  
+  async function addUser() {
+    const validation = await form.value.validate();
+    
+    if (validation.valid) {
+      newUser.value.username = `${newUser.value.firstName}.${newUser.value.lastName}`; 
+      await UserServices.addUser(newUser.value)
+      .then(async (data) => {
+        snackbar.value.value = true;
+        snackbar.value.color = "green";
+        snackbar.value.text = "User successfully added!";
+        
+        await getUsers();
+        form.value.reset();
+        newUser.value.firstName = "";
+        newUser.value.lastName = "";
+        newUser.value.email = "";
+      })
+      .catch((error) => {
+        console.log(error);
+        snackbar.value.value = true;
+        snackbar.value.color = "error";
+        snackbar.value.text = error.response.data.message || "Error adding user";
+      });
+    }
+  }
+  
+  async function getTickets() {
+    await TicketServices.getTickets()
+    .then((response) => {
+      tickets.value = response.data;
+    })
+    .catch((error) => {
+      console.log(error);
+      tickets.value = [];
+      snackbar.value.value = true;
+      snackbar.value.color = "error";
+      snackbar.value.text = error.response?.data?.message || "Error retrieving tickets";
+    });
+  }
+  
+  function isUserAdmin(role) {
+    return role === "ADMIN";
 }
 
 function formatRole(role) {
@@ -238,48 +284,60 @@ function formatRole(role) {
   }
 }
 
-const checkRequired = (value) => {
-  if (value) return true;
-  return "This field is required.";
-};
-const checkEmail = (value) => {
-  if (/.+@.+\..+/.test(value)) return true;
-  return "E-mail must be valid.";
-};
-
-const requiredRules = [checkRequired];
-const emailRules = [checkRequired, checkEmail];
-
-
-async function addUser() {
-  const validation = await form.value.validate();
+function getActionValueAndDesign(action) {
+  const selectedAction = actionValuesAndDesign.find(actionValue => actionValue.value === action);
   
-  if (validation.valid) {
-    newUser.value.username = `${newUser.value.firstName}.${newUser.value.lastName}`; 
-    await UserServices.addUser(newUser.value)
-      .then(async (data) => {
-        snackbar.value.value = true;
-        snackbar.value.color = "green";
-        snackbar.value.text = "User successfully added!";
+  return { backgroundColor: selectedAction.bgColor, color: selectedAction.textColor };
+}
 
-        await getUsers();
-        form.value.reset();
-        newUser.value.firstName = "";
-        newUser.value.lastName = "";
-        newUser.value.email = "";
-      })
-      .catch((error) => {
-        console.log(error);
-        snackbar.value.value = true;
-        snackbar.value.color = "error";
-        snackbar.value.text = error.response.data.message || "Error adding user";
-      });
+function getMDIIcon(action) {
+  const selectedAction = actionValuesAndDesign.find(actionValue => actionValue.value === action);
+  
+  return selectedAction.mdiIcon;
+}
+
+function getMDIIconColor(action) {
+  const selectedAction = actionValuesAndDesign.find(actionValue => actionValue.value === action);
+  
+  return selectedAction.textColor;
+}
+
+function getLogUserFullName(userId) {
+  const loggedUser = users.value.find(u => u.id === userId);
+  return loggedUser ? `${loggedUser.firstName} ${loggedUser.lastName}` : "User not found";
+}
+
+function formatLogTime(loggedTime) {
+  const now = new Date();
+  const createdAt = new Date(loggedTime);
+  const secondsDifference = Math.floor((now - createdAt) / 1000);
+  const minutesDifference = Math.floor(secondsDifference / 60);
+  const hoursDifference = Math.floor(minutesDifference / 60);
+  const daysDifference = Math.floor(hoursDifference / 24);
+  
+  if (secondsDifference < 60) {
+    return "Just now";
   }
+  else if (minutesDifference < 60) {
+    return `${minutesDifference} min ago`
+  }
+  else if (hoursDifference < 24) {
+    return `${hoursDifference} hr ago`
+  }
+  else {
+    return daysDifference === 1 ? "1 day ago" : `${daysDifference} days ago`
+  }
+}
+
+function getTicketCountForUser(userId) {
+  const userTickets = tickets.value.filter(ticket => ticket.assigneeId === userId);
+  return userTickets.length;
 }
 
 function closeSnackBar() {
   snackbar.value.value = false;
 }
+
 </script>
 
 <template>
@@ -289,12 +347,12 @@ function closeSnackBar() {
       <p class="mt-2 mb-6 sub-paragraph">Workspace-wide account management. Global role (Admin/User) controls workspace access &mdash;
         project-level roles are set per-project from that project's Team Management tab.
       </p>
-
+      
       <span class="sub-heading">Add New User</span>
       <p class="mt-2 mb-4 sub-paragraph">Create an account by email so they can be assigned to projects.
         They can change their display name later from their own Profile.
       </p>
-
+      
       <v-card id="#add-user-fields" class="rounded-lg border-thin mb-6" variant="flat">
         <v-form ref="form">
           <div class="d-flex align-center justify-space-between ga-4 px-5">
@@ -353,19 +411,17 @@ function closeSnackBar() {
       <v-text-field
         v-model="search"
         placeholder="Search users by name or email"
-        prepend-inner-icon="mdi-magnify"
         variant="plain"
         density="compact"
         hide-details
         clearable
-        class="mt-2 mb-4 pb-2 pl-2"
-        :class="userSearchBar"
+        class="mt-2 mb-4 pb-2 pl-2 user-search-bar"
+        prepend-inner-icon="mdi-magnify"
       ></v-text-field>    
 
       <v-card class="rounded-lg mt-4 mb-6 border-thin" variant="flat">
         <v-table
           density="compact"
-          height="33vh"
         >
           <tbody>
             <tr v-for="user in filteredUsers" :key="user.id">
@@ -391,12 +447,12 @@ function closeSnackBar() {
 
                   <div class="d-flex align-center ga-6 py-2 mr-2">
                     <div style="color:rgba(80, 80, 80)">
-                      {{ activeTasks }} active tasks
+                      {{ getTicketCountForUser(user.id) }} active tasks
                     </div>
 
                     <div>
                       <v-chip 
-                        :style="isUserAdmin(user.globalRole) ? 'background-color: #EFE6FC; color: #5D3CA6' : 'background-color: #DEE6FA; color: #2E4DC9'"
+                        :style="isUserAdmin(user.globalRole) ? 'background-color: #EAF0FE; color: #1E3E9E' : 'background-color: #EFEFEC; color: #80879F'"
                         class="font-weight-bold px-3"
                         size="small"
                         variant="flat"
@@ -417,10 +473,10 @@ function closeSnackBar() {
                         hide-details
                         bg-color="white"
                         rounded="lg"
-                        :class="selectGlobalRole"
+                        class="select-global-role"
                         :menu-icon="null"
                         append-inner-icon="mdi-chevron-down"
-                        @update:modelValue="updateUser(user, $event)"
+                        @update:modelValue="updateUser(user.id, user)"
                       >
                       </v-select>
                     </div>
@@ -439,18 +495,18 @@ function closeSnackBar() {
 
       <div class="d-flex justify-space-between ga-6">
         <v-text-field
-          v-model="search"
+          v-model="logSearch"
           placeholder="Search by person or action..."
-          prepend-inner-icon="mdi-magnify"
           variant="plain"
           density="compact"
           hide-details
           clearable
-          class="pb-2 pl-2"
-          :class="userSearchBar"
+          class="pb-2 pl-2 log-search-bar"
+          prepend-inner-icon="mdi-magnify"
         ></v-text-field>    
 
         <v-select
+          v-model="selectedAction"
           :items="actionsList"
           density="compact"
           variant="solo"
@@ -465,6 +521,7 @@ function closeSnackBar() {
         ></v-select>
 
         <v-select
+          v-model="selectedTimeRange"
           :items="timeRanges"
           item-title="title"
           item-value="value"
@@ -477,8 +534,7 @@ function closeSnackBar() {
           class="select-time-range"
           :menu-icon="null"
           append-inner-icon="mdi-chevron-down"
-          @update:modelValue="updateUser(user, $event)"
-          width="13%"
+          width="15%"
         ></v-select>
       </div>
 
@@ -488,7 +544,7 @@ function closeSnackBar() {
           height="33vh"
         >
           <tbody>
-            <tr v-for="activityLog in userActivityLogs" :key="activityLog.id">
+            <tr v-for="activityLog in filteredLogs" :key="activityLog.id">
               <td>
                 <div class="d-flex justify-space-between mx-2 py-2">
                   <div class="d-flex align-center ga-4">
@@ -570,11 +626,18 @@ function closeSnackBar() {
   text-transform: lowercase;
 }
 
-.user-search-bar {
-  width: 90%;
+.user-search-bar, .log-search-bar {
   background-color: white;
   border: 1px solid rgba(153, 153, 153, 0.658);
   border-radius: 10px;
+}
+
+.user-search-bar {
+  width: 90%;
+}
+
+.log-search-bar {
+  width: 80%;
 }
 
 .select-global-role {

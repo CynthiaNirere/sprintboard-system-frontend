@@ -46,7 +46,7 @@ async function addProject() {
 
   isCreating.value = true;
   await ProjectServices.addProject(newProject.value)
-    .then(() => {
+    .then(async (response) => {
       showCreateDialog.value = false;
       newProject.value = { name: "", description: "" };
       snackbar.value.value = true;
@@ -84,13 +84,14 @@ function confirmDelete(project) {
 async function deleteProject() {
   isDeleting.value = true;
   await ProjectServices.deleteProject(projectToDelete.value.id)
-    .then(() => {
+    .then(async (response) => {
       showDeleteDialog.value = false;
       snackbar.value.value = true;
       snackbar.value.color = "success";
       snackbar.value.text = `"${projectToDelete.value.name}" was deleted.`;
       projectToDelete.value = null;
-      getProjects();
+      await getProjects();
+      emit('project-deleted');
     })
     .catch((error) => {
       snackbar.value.value = true;

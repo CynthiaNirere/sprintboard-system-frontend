@@ -52,7 +52,7 @@ async function addProject() {
       snackbar.value.value = true;
       snackbar.value.color = "success";
       snackbar.value.text = "Project created successfully!";
-      getProjects();
+      await getProjects();
       emit('project-added');
     })
     .catch((error) => {

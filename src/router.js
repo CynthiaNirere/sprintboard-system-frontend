@@ -8,31 +8,13 @@ const router = createRouter({
       name: "login",
       component: () => import("./views/Login.vue"),
     },
-    {
-      path: "/admin/shows",
-      name: "adminShows",
-      component: () => import("./views/AdminShows.vue"),
-    },
-    {
-      path: "/admin/events",
-      name: "adminEvents",
-      component: () => import("./views/AdminEvents.vue"),
-    },
-    {
-      path: "/admin/users",
-      name: "adminUsers",
-      component: () => import("./views/AdminUsers.vue"),
-    },
-    {
-      path: "/shows",
-      name: "shows",
-      component: () => import("./views/ShowList.vue"),
-    },
+   
     {
       path: "/profile",
       name: "profile",
       component: () => import("./views/Profile.vue"),
     },
+     // ADMIN — global admins (user.globalRole === "ADMIN")
     {
       path: "/admin",
       name: "adminLayout",
@@ -119,6 +101,7 @@ const router = createRouter({
         },
       ]
     },
+     // PROJECT-ADMIN — one specific project
     {
       path: "/project-admin/:id",
       name: "projectAdminLayout",

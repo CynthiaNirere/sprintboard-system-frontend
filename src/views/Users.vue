@@ -11,6 +11,7 @@ const search = ref("");
 const userActivityLogs = ref([]);
 const tickets = ref([]);
 const logSearch = ref("");
+const itemsPerPage = ref(5);
 
 const checkRequired = (value) => {
   if (value) return true;
@@ -419,7 +420,7 @@ function closeSnackBar() {
         density="compact"
         hide-details
         clearable
-        class="mt-2 mb-4 pb-2 pl-2 user-search-bar"
+        class="mt-2 mb-3 pb-2 pl-2 user-search-bar"
         prepend-inner-icon="mdi-magnify"
       ></v-text-field>    
 

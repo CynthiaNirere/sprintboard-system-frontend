@@ -1,16 +1,110 @@
 <script setup>
 import { onMounted, ref, computed } from "vue";
 import UserServices from "../services/UserServices.js";
+import UserActivityLogServices from "../services/UserActivityLogServices.js";
 
 const user = ref(null);
 const users = ref([]);
 const form = ref(null);
 const search = ref("");
+const userActivityLogs = ref([]);
 const adminChip = ref('admin-chip');
 const userChip = ref('user-chip');
 const userSearchBar = ref('user-search-bar');
 const activeTasks = ref('0');
 const selectGlobalRole = ref('select-global-role');
+
+const actionsList = [
+  "All actions",
+  "Login",
+  "Logout",
+  "Global role changed",
+  "Project role changed",
+  "Project created",
+  "Project deleted",
+  "Member added",
+  "Member removed",
+  "Ticket created",
+  "Ticket updated",
+  "Ticket deleted",
+  "Sprint created",
+  "Sprint deleted",
+  "GitHub repo linked",
+  "Board status updated",
+  "Test status changed",
+  "Attachment uploaded",
+  "Attachment deleted",
+  "Retro created",
+  "Retro item added"
+];
+
+const actionValuesAndDesign = [
+  { value: "Login", mdiIcon: 'mdi-login', bgColor: "#EFEFEC", textColor: "#3D8A60" },
+  { value: "Logout", mdiIcon: 'mdi-logout', bgColor: "#EFEFEC", textColor: "#81889A" },
+  { value: "Global role changed", mdiIcon: 'mdi-shield-outline', bgColor: "#EFEFEC", textColor: "#7647EB" },
+  { value: "Project role changed", mdiIcon: 'mdi-shield-outline', bgColor: "#EFEFEC", textColor: "#7647EB" },
+  { value: "Project created", mdiIcon: 'mdi-folder-open-outline', bgColor: "#EFEFEC", textColor: "#3058CB" },
+  { value: "Project deleted", mdiIcon: 'mdi-trash-can-outline', bgColor: "#EFEFEC", textColor: "#B5362C" },
+  { value: "Member added", mdiIcon: 'mdi-account-plus-outline', bgColor: "#EFEFEC", textColor: "#24439D" },
+  { value: "Member removed", mdiIcon: 'mdi-account-minus-outline', bgColor: "#EFEFEC", textColor: "#B5362C" },
+  { value: "Ticket created", mdiIcon: 'mdi-plus', bgColor: "#EFEFEC", textColor: "#3058CB" },
+  { value: "Ticket updated", mdiIcon: 'mdi-information-outline', bgColor: "#EFEFEC", textColor: "#4C5160" },
+  { value: "Ticket deleted", mdiIcon: 'mdi-trash-can-outline', bgColor: "#EFEFEC", textColor: "#B5362C" },
+  { value: "Sprint created", mdiIcon: 'mdi-rocket-launch-outline', bgColor: "#EFEFEC", textColor: "#3058CB" },
+  { value: "Sprint deleted", mdiIcon: 'mdi-trash-can-outline', bgColor: "#EFEFEC", textColor: "#B5362C" },
+  { value: "GitHub repo linked", mdiIcon: 'mdi-github', bgColor: "#EFEFEC", textColor: "#14171F" },
+  { value: "Board status updated", mdiIcon: 'mdi-cog-outline', bgColor: "#EFEFEC", textColor: "#B28415" },
+  { value: "Test status changed", mdiIcon: 'mdi-flask-empty-outline', bgColor: "#EFEFEC", textColor: "#7647EB" },
+  { value: "Attachment uploaded", mdiIcon: 'mdi-tray-arrow-up', bgColor: "#EFEFEC", textColor: "#3058CB" },
+  { value: "Attachment deleted", mdiIcon: 'mdi-trash-can-outline', bgColor: "#EFEFEC", textColor: "#B5362C" },
+  { value: "Retro created", mdiIcon: 'mdi-clipboard-text-outline', bgColor: "#EFEFEC", textColor: "#3058CB" },
+  { value: "Retro item added", mdiIcon: 'mdi-clipboard-text-outline', bgColor: "#EFEFEC", textColor: "#24439D" }
+];
+
+function getActionValueAndDesign(action) {
+  const selectedAction = actionValuesAndDesign.find(actionValue => actionValue.value === action);
+
+  return { backgroundColor: selectedAction.bgColor, color: selectedAction.textColor };
+}
+
+function getMDIIcon(action) {
+  const selectedAction = actionValuesAndDesign.find(actionValue => actionValue.value === action);
+
+  return selectedAction.mdiIcon;
+}
+
+function getMDIIconColor(action) {
+  const selectedAction = actionValuesAndDesign.find(actionValue => actionValue.value === action);
+
+  return selectedAction.textColor;
+}
+
+function getLogUserFullName(userId) {
+  const loggedUser = users.value.find(u => u.id === userId);
+  return `${loggedUser.firstName} ${loggedUser.lastName}`
+}
+
+function formatLogTime(loggedTime) {
+  const now = new Date();
+  const createdAt = new Date(loggedTime);
+  const secondsDifference = Math.floor((now - createdAt) / 1000);
+  const minutesDifference = Math.floor(secondsDifference / 60);
+  const hoursDifference = Math.floor(minutesDifference / 60);
+  const daysDifference = Math.floor(hoursDifference / 24);
+
+  if (secondsDifference < 60) {
+    return "Just now";
+  }
+  else if (minutesDifference < 60) {
+    return `${minutesDifference} min ago`
+  }
+  else if (hoursDifference < 24) {
+    return `${hoursDifference} hr ago`
+  }
+  else {
+    return daysDifference === 1 ? "1 day ago" : `${daysDifference} days ago`
+  }
+}
 
 const filteredUsers = computed(() => {
   let result = [];
@@ -74,6 +168,7 @@ const snackbar = ref({
 onMounted(async () => {
   user.value = JSON.parse(localStorage.getItem("user"));
   await getUsers();
+  await getUserActivityLogs();
 });
 
 async function getUsers() {
@@ -84,10 +179,24 @@ async function getUsers() {
     .catch((error) => {
       console.log(error);
       users.value = [];
-      snackbar.value = true;
+      snackbar.value.value = true;
       snackbar.value.color = "error";
       snackbar.value.text = error.response?.data?.message || "Error loading users";  
     });
+}
+
+async function getUserActivityLogs() {
+  await UserActivityLogServices.getUserActivityLogs()
+    .then((response) => {
+      userActivityLogs.value = response.data;
+    })
+    .catch((error) => {
+      console.log(error);
+      userActivityLogs.value = [];
+      snackbar.value.value = true;
+      snackbar.value.color = "error";
+      snackbar.value.text = error.response?.data?.message || "Error loading user activity log";     
+    })
 }
 
 async function updateUser(user) {
@@ -324,7 +433,7 @@ function closeSnackBar() {
       </v-card>
 
       <span class="sub-heading">Workspace Activity Log</span>
-      <p class="mt-2 mb-4 sub-paragraph">Every meaningful actions across the workspace &mdash; separate
+      <p class="mt-2 mb-4 sub-paragraph">Every meaningful action across the workspace &mdash; separate
         from a task's own History tab.
       </p>
 
@@ -339,28 +448,39 @@ function closeSnackBar() {
           clearable
           class="pb-2 pl-2"
           :class="userSearchBar"
-          max-width="80%"
         ></v-text-field>    
 
-        <div>
-          <v-select
-            :items="timeRanges"
-            item-title="title"
-            item-value="value"
-            density="compact"
-            variant="solo"
-            flat
-            hide-details
-            bg-color="white"
-            rounded="lg"
-            class="select-time-range"
-            :menu-icon="null"
-            append-inner-icon="mdi-unfold-more-horizontal"          
-            @update:modelValue="updateUser(user, $event)"
-          ></v-select>
-        </div>
-      </div>
+        <v-select
+          :items="actionsList"
+          density="compact"
+          variant="solo"
+          flat
+          hide-details
+          bg-color="white"
+          rounded="lg"
+          class="select-actions"
+          :menu-icon="null"
+          append-inner-icon="mdi-chevron-down"
+          width="20%"
+        ></v-select>
 
+        <v-select
+          :items="timeRanges"
+          item-title="title"
+          item-value="value"
+          density="compact"
+          variant="solo"
+          flat
+          hide-details
+          bg-color="white"
+          rounded="lg"
+          class="select-time-range"
+          :menu-icon="null"
+          append-inner-icon="mdi-chevron-down"
+          @update:modelValue="updateUser(user, $event)"
+          width="13%"
+        ></v-select>
+      </div>
 
       <v-card class="rounded-lg mt-4 mb-6 border-thin" variant="flat">
         <v-table
@@ -368,61 +488,37 @@ function closeSnackBar() {
           height="33vh"
         >
           <tbody>
-            <tr v-for="user in filteredUsers" :key="user.id">
+            <tr v-for="activityLog in userActivityLogs" :key="activityLog.id">
               <td>
-                <div class="d-flex justify-space-between py-2">
-                  <div class="d-flex align-center ga-4 py-2 ml-2">
-                    <div id="userInitials">
-                      <v-avatar class="mx-auto text-center avatar-outline" color="#1740E3" size="small">
-                        <span class="white--text font-weight-bold">{{
-                          `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`
-                        }}</span>
-                      </v-avatar>
+                <div class="d-flex justify-space-between mx-2 py-2">
+                  <div class="d-flex align-center ga-4">
+                    <div>
+                      <v-icon
+                        :color="getMDIIconColor(activityLog.action)"
+                      >
+                        {{ getMDIIcon(activityLog.action) }}
+                      </v-icon>
                     </div>
-                    <div class="d-flex flex-column">
-                      <div class="font-weight-bold">
-                        {{ user.firstName }} {{ user.lastName }}
-                      </div>
-                      <div style="color:rgba(95, 95, 85, 0.92)">
-                        {{ user.email }}
-                      </div>
+                    <div>
+                      <span style="font-weight: bold;">{{ getLogUserFullName(activityLog.userId) }}</span>
+                      {{ activityLog.detail }}
                     </div>
                   </div>
 
-                  <div class="d-flex align-center ga-6 py-2 mr-2">
-                    <div style="color:rgba(80, 80, 80)">
-                      {{ activeTasks }} active tasks
-                    </div>
-
-                    <div>
+                  <div class="d-flex align-center justify-end chip-and-time">
+                    <div class="d-flex justify-end">
                       <v-chip 
-                        :style="isUserAdmin(user.globalRole) ? 'background-color: #EFE6FC; color: #5D3CA6' : 'background-color: #DEE6FA; color: #2E4DC9'"
+                        :style="getActionValueAndDesign(activityLog.action)"
                         class="font-weight-bold px-3"
                         size="small"
                         variant="flat"
                         >
-                        {{ formatRole(user.globalRole) }}
+                        {{ activityLog.action }}
                       </v-chip> 
                     </div>
                     
-                    <div>
-                      <v-select
-                        v-model="user.globalRole"
-                        :items="globalRoles"
-                        item-title="title"
-                        item-value="value"
-                        density="compact"
-                        variant="solo"
-                        flat
-                        hide-details
-                        bg-color="white"
-                        rounded="lg"
-                        class="selectGlobalRole"
-                        :menu-icon="null"
-                        append-inner-icon="mdi-chevron-down"
-                        @update:modelValue="updateUser(user, $event)"
-                      >
-                      </v-select>
+                    <div id="time" class="d-flex justify-end">
+                      {{ formatLogTime(activityLog.createdAt) }}
                     </div>
                   </div>
                 </div>
@@ -431,7 +527,6 @@ function closeSnackBar() {
           </tbody>
         </v-table>
       </v-card>     
-
     </div>
 
     <v-snackbar v-model="snackbar.value" rounded="pill">
@@ -476,7 +571,7 @@ function closeSnackBar() {
 }
 
 .user-search-bar {
-  width: 70%;
+  width: 90%;
   background-color: white;
   border: 1px solid rgba(153, 153, 153, 0.658);
   border-radius: 10px;
@@ -489,8 +584,7 @@ function closeSnackBar() {
   border-radius: 8px;
 }
 
-.select-time-range {
-  width: 140px;
+.select-actions, .select-time-range {
   color: white;
   border: 1px solid rgba(153, 153, 153, 0.658);
   border-radius: 8px;
@@ -505,8 +599,16 @@ function closeSnackBar() {
 }
 
 .sub-paragraph {
-  font-weight: light;
   color:rgba(101, 101, 101, 0.856);
   font-weight: 300;
+}
+
+.chip-and-time {
+  width: 35%;
+  gap: 0.5rem;
+}
+
+#time {
+  width: 25%;
 }
 </style>

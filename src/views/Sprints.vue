@@ -1,10 +1,12 @@
 <script setup>
 import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import SprintServices from "../services/sprintServices.js";
 import TicketServices from "../services/TicketServices.js";
 import BoardStatusesServices from "../services/BoardStatusesServices.js";
 import RetroServices from "../services/retroServices.js"
+import projectServices from "../services/projectServices.js"
 import projectServices from "../services/projectServices.js"
 import retro from "../components/retro.vue"
 import { eventBus } from "../services/eventBus.js";
@@ -14,6 +16,7 @@ const sprints = ref([]);
 const snackbar = ref({ value: false, color: "", text: "" });
 const user = JSON.parse(localStorage.getItem("user"));
 const isAdmin = user?.globalRole === "ADMIN";
+const isProjectAdmin = ref(false);
 
 const isProjectAdmin = ref(false);
 
@@ -31,6 +34,7 @@ const isProjectAdmin = computed(() => {
 });
 
 const props = defineProps(['activeProject']);
+
 const sprintCompletion = ref([]);
 
 const showModal = ref(false);

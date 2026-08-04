@@ -12,9 +12,6 @@ const sprints = ref([]);
 const snackbar = ref({ value: false, color: "", text: "" });
 const user = JSON.parse(localStorage.getItem("user"));
 const isAdmin = user?.globalRole === "ADMIN";
-
-const props = defineProps(['activeProject']);
-const sprintCompletion = ref([]);
 const isProjectAdmin = computed(() => {
   if (props.activeProject?.users) {
     const currentProjectUser = props.activeProject.users.find(u => u.id === user?.id);
@@ -24,6 +21,9 @@ const isProjectAdmin = computed(() => {
   }
   return false;
 });
+
+const props = defineProps(['activeProject']);
+const sprintCompletion = ref([]);
 
 const showModal = ref(false);
 const isCreating = ref(false);

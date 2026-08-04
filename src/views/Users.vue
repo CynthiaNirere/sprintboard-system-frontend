@@ -9,8 +9,6 @@ const users = ref([]);
 const form = ref(null);
 const search = ref("");
 const userActivityLogs = ref([]);
-// const adminChip = ref('admin-chip');
-// const userChip = ref('user-chip');
 const tickets = ref([]);
 const logSearch = ref("");
 const itemsPerPage = ref(5);
@@ -351,22 +349,22 @@ function closeSnackBar() {
   <v-container fluid>
     <div id="body">
       <h3 class="page-header">Users</h3>
-      <p class="mt-2 mb-3 sub-paragraph">Workspace-wide account management. Global role (Admin/User) controls workspace access &mdash;
+      <p class="mt-2 mb-4 sub-paragraph">Workspace-wide account management. Global role (Admin/User) controls workspace access &mdash;
         project-level roles are set per-project from that project's Team Management tab.
       </p>
       
       <span class="sub-heading">Add New User</span>
-      <p class="mb-3 sub-paragraph">Create an account by email so they can be assigned to projects.
+      <p class="mt-2 mb-3 sub-paragraph">Create an account by email so they can be assigned to projects.
         They can change their display name later from their own Profile.
       </p>
       
-      <v-card id="#add-user-fields" class="rounded-lg border-thin mb-4" variant="flat">
+      <v-card id="#add-user-fields" class="rounded-lg border-thin mb-6" variant="flat">
         <v-form ref="form">
-          <div class="d-flex align-center justify-space-between ga-4 px-5">
-            <v-text-field id="first-name"
+          <div class="d-flex align-center justify-space-between ga-4 px-6">
+            <v-text-field
               v-model="newUser.firstName"
               :rules="requiredRules"
-              density="comfortable"
+              density="compact"
               placeholder="First name"
               variant="outlined"
               required
@@ -375,10 +373,10 @@ function closeSnackBar() {
             >
             </v-text-field>
 
-            <v-text-field id="last-name"
+            <v-text-field
               v-model="newUser.lastName"
               :rules="requiredRules"
-              density="comfortable"
+              density="compact"
               placeholder="Last name"
               variant="outlined"
               required
@@ -387,10 +385,10 @@ function closeSnackBar() {
             >
             </v-text-field>
   
-            <v-text-field id="email"
+            <v-text-field
               v-model="newUser.email"
               :rules="emailRules"
-              density="comfortable"
+              density="compact"
               placeholder="name@example.com"
               variant="outlined"
               required
@@ -399,9 +397,9 @@ function closeSnackBar() {
             >
             </v-text-field>
   
-            <v-btn id="addUserBtn"
+            <v-btn
               variant="outlined"
-              class="d-flex justify-center align-center px-5 py-6 text-none"
+              class="d-flex justify-center align-center px-4 py-5 text-none"
               style="background-color: white; color: rgb(73, 71, 71);"
               rounded="lg"
               prepend-icon="mdi-plus"
@@ -422,17 +420,17 @@ function closeSnackBar() {
         density="compact"
         hide-details
         clearable
-        class="mt-2 mb-3 pb-2 pl-2 user-search-bar"
+        class="mt-2 mb-4 pb-2 pl-2 user-search-bar"
         prepend-inner-icon="mdi-magnify"
       ></v-text-field>    
 
-      <v-card class="rounded-lg mt-2 mb-6 border-thin" variant="flat">
+      <v-card class="rounded-lg mb-6 border-thin" variant="flat">
         <v-data-table
           :items="filteredUsers"
           density="compact"
           hide-default-header
           hover
-          no-data-text="No users found"
+          no-data-text="No users found."
           :items-per-page="5"
           :items-per-page-options="[5, 10, 25, 50, -1]"
         >
@@ -476,7 +474,7 @@ function closeSnackBar() {
                     
                     <div>
                       <v-select
-                        v-model="user.globalRole"
+                        v-model="item.globalRole"
                         :items="globalRoles"
                         item-title="title"
                         item-value="value"
@@ -489,7 +487,7 @@ function closeSnackBar() {
                         class="select-global-role"
                         :menu-icon="null"
                         append-inner-icon="mdi-chevron-down"
-                        @update:modelValue="updateUser(user.id, user)"
+                        @update:modelValue="updateUser(item.id, item)"
                       >
                       </v-select>
                     </div>
@@ -502,11 +500,11 @@ function closeSnackBar() {
       </v-card>
 
       <span class="sub-heading">Workspace Activity Log</span>
-      <p class="mt-1 mb-2 sub-paragraph">Every meaningful action across the workspace &mdash; separate
+      <p class="mt-2 mb-3 sub-paragraph">Every meaningful action across the workspace &mdash; separate
         from a task's own History tab.
       </p>
 
-      <div class="d-flex justify-space-between ga-6">
+      <div class="d-flex justify-space-between ga-4">
         <v-text-field
           v-model="logSearch"
           placeholder="Search by person or action..."
@@ -551,13 +549,13 @@ function closeSnackBar() {
         ></v-select>
       </div>
 
-      <v-card class="rounded-lg mt-3 mb-6 border-thin" variant="flat">
+      <v-card class="rounded-lg mt-4 mb-6 border-thin" variant="flat">
         <v-data-table
           :items="filteredLogs"
           density="compact"
           hide-default-header
           hover
-          no-data-text="No workspace activity logs"
+          no-data-text="No activity matches your search."
         >
           <template v-slot:item="{item}">
             <tr>
@@ -634,14 +632,6 @@ function closeSnackBar() {
   flex-direction: column;
 }
 
-/* .admin-chip {
-  text-transform: lowercase;
-}
-
-.user-chip {
-  text-transform: lowercase;
-} */
-
 .user-search-bar, .log-search-bar {
   background-color: white;
   border: 1px solid rgba(153, 153, 153, 0.658);
@@ -649,7 +639,7 @@ function closeSnackBar() {
 }
 
 .user-search-bar {
-  width: 90%;
+  width: 30%;
 }
 
 .log-search-bar {

@@ -30,6 +30,9 @@ const isProjectAdmin = computed(() => {
   return false;
 });
 
+const props = defineProps(['activeProject']);
+const sprintCompletion = ref([]);
+
 const showModal = ref(false);
 const isCreating = ref(false);
 const form = ref(null);

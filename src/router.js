@@ -47,6 +47,11 @@ const router = createRouter({
           component: () => import("./views/TeamManagement.vue"),
         },
         {
+          path: "board-statuses",
+          name: "boardStatuses",
+          component: () => import("./views/BoardStatuses.vue"),
+        },
+        {
           path: "projects",
           name: "adminProjects",
           component: () => import("./views/ProjectsView.vue"),
@@ -127,7 +132,12 @@ const router = createRouter({
           path: "team-management",
           name: "projectAdminTeamManagement",
           component: () => import("./views/TeamManagement.vue"),
-        }
+        },
+        {
+          path: "board-statuses",
+          name: "projectAdminBoardStatuses",
+          component: () => import("./views/BoardStatuses.vue"),
+        },
       ],
     },
 ],

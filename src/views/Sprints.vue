@@ -62,7 +62,6 @@ async function getSprints() {
     const response = await SprintServices.getSprintsByProject(props.activeProject?.id);
 
     sprints.value = response.data;
-
     await Promise.all(
       sprints.value.map(async (sprint) => {
         sprintCompletion.value[sprint.id] = {
@@ -120,9 +119,10 @@ async function getPercentageOfSprint(sprintId){
 
 async function submitModal() {
   const { valid } = await form.value.validate();
+  const projectId = currentSprint.value.projectId;
   if (!valid) return;
   if(!isAdd.value){
-    await SprintServices.updateSprint(currentSprint.value.id, currentSprint.value)
+    await SprintServices.updateSprint(projectId, currentSprint.value.id, currentSprint.value)
         .then(() => {
         snackbar.value.value = true;
         snackbar.value.color = "green";
@@ -149,7 +149,7 @@ async function submitModal() {
     
       }
 
-      await SprintServices.addSprint(currentSprint.value)
+      await SprintServices.addSprint(projectId, currentSprint.value)
         .then(() => {
           showModal.value = false;
           snackbar.value.value = true;
@@ -170,7 +170,7 @@ async function submitModal() {
     currentSprint.value.lengthDays = Number(currentSprint.value.lengthDays);
     currentSprint.value.count = Number(currentSprint.value.count);
     isCreating.value = true;
-    await SprintServices.addRecurringSprints(currentSprint.value)
+    await SprintServices.addRecurringSprints(projectId, currentSprint.value)
         .then(() => {
           showModal.value = false;
           snackbar.value.value = true;
@@ -229,7 +229,8 @@ function confirmDelete(sprint) {
 
 async function deleteSprint() {
   isDeleting.value = true;
-  await SprintServices.deleteSprint(sprintToDelete.value.id)
+  const projectId = sprintToDelete.value.projectId;
+  await SprintServices.deleteSprint(projectId, sprintToDelete.value.id)
     .then(() => {
       showDeleteDialog.value = false;
       snackbar.value.value = true;
@@ -271,7 +272,6 @@ function displayDate(dateString) {
 async function getRetro(sprintId){
     RetroServices.findSprintRetro(sprintId)
     .then((response) => {
-        console.log("Here");
         console.log(response.data.retrospectiveItems);
         console.log(Array.isArray(response.data.retrospectiveItems));
       currentRetro.value = response.data;

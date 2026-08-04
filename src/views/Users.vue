@@ -350,25 +350,20 @@ function closeSnackBar() {
     <div id="body">
       <h3 class="page-header">Users</h3>
       <p class="mt-2 mb-4 sub-paragraph">Workspace-wide account management. Global role (Admin/User) controls workspace access &mdash;
-      <p class="mt-2 mb-4 sub-paragraph">Workspace-wide account management. Global role (Admin/User) controls workspace access &mdash;
         project-level roles are set per-project from that project's Team Management tab.
       </p>
       
       <span class="sub-heading">Add New User</span>
       <p class="mt-2 mb-3 sub-paragraph">Create an account by email so they can be assigned to projects.
-      <p class="mt-2 mb-3 sub-paragraph">Create an account by email so they can be assigned to projects.
         They can change their display name later from their own Profile.
       </p>
       
-      <v-card id="#add-user-fields" class="rounded-lg border-thin mb-6" variant="flat">
+      <v-card id="add-user-fields" class="rounded-lg border-thin mb-6" variant="flat">
         <v-form ref="form">
-          <div class="d-flex align-center justify-space-between ga-4 px-6">
-            <v-text-field
           <div class="d-flex align-center justify-space-between ga-4 px-6">
             <v-text-field
               v-model="newUser.firstName"
               :rules="requiredRules"
-              density="compact"
               density="compact"
               placeholder="First name"
               variant="outlined"
@@ -379,10 +374,8 @@ function closeSnackBar() {
             </v-text-field>
 
             <v-text-field
-            <v-text-field
               v-model="newUser.lastName"
               :rules="requiredRules"
-              density="compact"
               density="compact"
               placeholder="Last name"
               variant="outlined"
@@ -393,10 +386,8 @@ function closeSnackBar() {
             </v-text-field>
   
             <v-text-field
-            <v-text-field
               v-model="newUser.email"
               :rules="emailRules"
-              density="compact"
               density="compact"
               placeholder="name@example.com"
               variant="outlined"
@@ -407,9 +398,7 @@ function closeSnackBar() {
             </v-text-field>
   
             <v-btn
-            <v-btn
               variant="outlined"
-              class="d-flex justify-center align-center px-4 py-5 text-none"
               class="d-flex justify-center align-center px-4 py-5 text-none"
               style="background-color: white; color: rgb(73, 71, 71);"
               rounded="lg"
@@ -436,13 +425,11 @@ function closeSnackBar() {
       ></v-text-field>    
 
       <v-card class="rounded-lg mb-6 border-thin" variant="flat">
-      <v-card class="rounded-lg mb-6 border-thin" variant="flat">
         <v-data-table
           :items="filteredUsers"
           density="compact"
           hide-default-header
           hover
-          no-data-text="No users found."
           no-data-text="No users found."
           :items-per-page="5"
           :items-per-page-options="[5, 10, 25, 50, -1]"
@@ -488,7 +475,6 @@ function closeSnackBar() {
                     <div>
                       <v-select
                         v-model="item.globalRole"
-                        v-model="item.globalRole"
                         :items="globalRoles"
                         item-title="title"
                         item-value="value"
@@ -501,7 +487,6 @@ function closeSnackBar() {
                         class="select-global-role"
                         :menu-icon="null"
                         append-inner-icon="mdi-chevron-down"
-                        @update:modelValue="updateUser(item.id, item)"
                         @update:modelValue="updateUser(item.id, item)"
                       >
                       </v-select>
@@ -516,11 +501,9 @@ function closeSnackBar() {
 
       <span class="sub-heading">Workspace Activity Log</span>
       <p class="mt-2 mb-3 sub-paragraph">Every meaningful action across the workspace &mdash; separate
-      <p class="mt-2 mb-3 sub-paragraph">Every meaningful action across the workspace &mdash; separate
         from a task's own History tab.
       </p>
 
-      <div class="d-flex justify-space-between ga-4">
       <div class="d-flex justify-space-between ga-4">
         <v-text-field
           v-model="logSearch"
@@ -567,13 +550,11 @@ function closeSnackBar() {
       </div>
 
       <v-card class="rounded-lg mt-4 mb-6 border-thin" variant="flat">
-      <v-card class="rounded-lg mt-4 mb-6 border-thin" variant="flat">
         <v-data-table
           :items="filteredLogs"
           density="compact"
           hide-default-header
           hover
-          no-data-text="No activity matches your search."
           no-data-text="No activity matches your search."
         >
           <template v-slot:item="{item}">
@@ -658,7 +639,6 @@ function closeSnackBar() {
 }
 
 .user-search-bar {
-  width: 30%;
   width: 30%;
 }
 

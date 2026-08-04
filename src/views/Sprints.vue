@@ -14,11 +14,21 @@ const sprints = ref([]);
 const snackbar = ref({ value: false, color: "", text: "" });
 const user = JSON.parse(localStorage.getItem("user"));
 const isAdmin = user?.globalRole === "ADMIN";
+
 const isProjectAdmin = ref(false);
 
 const props = defineProps(['activeProject']);
 
 const sprintCompletion = ref([]);
+const isProjectAdmin = computed(() => {
+  if (props.activeProject?.users) {
+    const currentProjectUser = props.activeProject.users.find(u => u.id === user?.id);
+    if (currentProjectUser?.project_member?.projectRole === "PROJECT_ADMIN") {
+      return true;
+    }
+  }
+  return false;
+});
 
 const showModal = ref(false);
 const isCreating = ref(false);
@@ -44,6 +54,7 @@ const currentRetro = ref({});
 watch(() => props.activeProject, async (newProject) => {
   if (newProject) {    
     isProjectAdmin.value = false;
+    console.log("Active Project Data:", newProject);
     await getSprints();
 
     const getProjectMembersResponse = await projectServices.getProjectMembers(props.activeProject?.id);
@@ -358,6 +369,7 @@ async function updateRetro(retro){
         </v-card-title>
       </v-col>
       <v-col class="d-flex justify-end" v-if="isAdmin || isProjectAdmin">
+      <v-col class="d-flex justify-end" v-if="isAdmin || isProjectAdmin">
         <v-btn color="primary" prepend-icon="mdi-plus" @click="addModal()">
           New Sprint
         </v-btn>
@@ -379,6 +391,7 @@ async function updateRetro(retro){
 
                 <v-btn
                 v-if="isAdmin || isProjectAdmin"
+                v-if="isAdmin || isProjectAdmin"
                   variant="outlined"
                   color="primary"
                   size="small"
@@ -387,6 +400,7 @@ async function updateRetro(retro){
                   Edit
                 </v-btn>
                 <v-btn
+                    v-if="isAdmin || isProjectAdmin"
                     v-if="isAdmin || isProjectAdmin"
                     icon="mdi-delete-outline"
                     variant="text"

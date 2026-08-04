@@ -1,10 +1,11 @@
 <script setup>
-import { ref, onMounted, watch, computed } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import SprintServices from "../services/sprintServices.js";
 import TicketServices from "../services/TicketServices.js";
 import BoardStatusesServices from "../services/BoardStatusesServices.js";
 import RetroServices from "../services/retroServices.js"
+import projectServices from "../services/projectServices.js"
 import retro from "../components/retro.vue"
 
 const router = useRouter();
@@ -12,17 +13,10 @@ const sprints = ref([]);
 const snackbar = ref({ value: false, color: "", text: "" });
 const user = JSON.parse(localStorage.getItem("user"));
 const isAdmin = user?.globalRole === "ADMIN";
-const isProjectAdmin = computed(() => {
-  if (props.activeProject?.users) {
-    const currentProjectUser = props.activeProject.users.find(u => u.id === user?.id);
-    if (currentProjectUser?.project_member?.projectRole === "PROJECT_ADMIN") {
-      return true;
-    }
-  }
-  return false;
-});
+const isProjectAdmin = ref(false);
 
 const props = defineProps(['activeProject']);
+
 const sprintCompletion = ref([]);
 
 const showModal = ref(false);
@@ -48,8 +42,18 @@ const currentRetro = ref({});
 
 watch(() => props.activeProject, async (newProject) => {
   if (newProject) {    
-    console.log("Active Project Data:", newProject);
+    isProjectAdmin.value = false;
     await getSprints();
+
+    const getProjectMembersResponse = await projectServices.getProjectMembers(props.activeProject?.id);
+    const currentProjectMembers = getProjectMembersResponse.data;
+
+    if (currentProjectMembers) {
+      const currentProjectMember = currentProjectMembers.find(u => u.id === user?.id);
+      if (currentProjectMember?.project_member?.projectRole === "PROJECT_ADMIN") {
+        isProjectAdmin.value = true;
+      }
+    }
   }
 }, { immediate: true});
 
@@ -387,7 +391,7 @@ async function updateRetro(retro){
           <p class="text-caption text-medium-emphasis">
             {{ displayDate(sprint.startDate) || "No start date" }} - {{ displayDate(sprint.endDate) || "No end date" }}
           </p>
-          <v-row class="ma-1" ">
+          <v-row class="ma-1">
               <v-progress-linear color="blue-lighten-3" :model-value="sprintCompletion[sprint.id]?.percentage ?? 0"></v-progress-linear>
             <p class="text-caption text-medium-emphasis ">
              

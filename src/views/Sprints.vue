@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted,watch } from "vue";
+import { ref, onMounted, watch, computed } from "vue";
 import { useRouter } from "vue-router";
 import SprintServices from "../services/sprintServices.js";
 import TicketServices from "../services/TicketServices.js";
@@ -7,14 +7,23 @@ import BoardStatusesServices from "../services/BoardStatusesServices.js";
 import RetroServices from "../services/retroServices.js"
 import retro from "../components/retro.vue"
 
-
 const router = useRouter();
 const sprints = ref([]);
 const snackbar = ref({ value: false, color: "", text: "" });
 const user = JSON.parse(localStorage.getItem("user"));
 const isAdmin = user?.globalRole === "ADMIN";
+
 const props = defineProps(['activeProject']);
 const sprintCompletion = ref([]);
+const isProjectAdmin = computed(() => {
+  if (props.activeProject?.users) {
+    const currentProjectUser = props.activeProject.users.find(u => u.id === user?.id);
+    if (currentProjectUser?.project_member?.projectRole === "PROJECT_ADMIN") {
+      return true;
+    }
+  }
+  return false;
+});
 
 const showModal = ref(false);
 const isCreating = ref(false);
@@ -39,6 +48,7 @@ const currentRetro = ref({});
 
 watch(() => props.activeProject, async (newProject) => {
   if (newProject) {    
+    console.log("Active Project Data:", newProject);
     await getSprints();
   }
 }, { immediate: true});
@@ -333,7 +343,7 @@ async function updateRetro(retro){
           Sprints 
         </v-card-title>
       </v-col>
-      <v-col class="d-flex justify-end" v-if="isAdmin">
+      <v-col class="d-flex justify-end" v-if="isAdmin || isProjectAdmin">
         <v-btn color="primary" prepend-icon="mdi-plus" @click="addModal()">
           New Sprint
         </v-btn>
@@ -354,7 +364,7 @@ async function updateRetro(retro){
             <div>
 
                 <v-btn
-                v-if="isAdmin"
+                v-if="isAdmin || isProjectAdmin"
                   variant="outlined"
                   color="primary"
                   size="small"
@@ -363,7 +373,7 @@ async function updateRetro(retro){
                   Edit
                 </v-btn>
                 <v-btn
-                    v-if="isAdmin"
+                    v-if="isAdmin || isProjectAdmin"
                     icon="mdi-delete-outline"
                     variant="text"
                     color="error"
@@ -404,7 +414,7 @@ async function updateRetro(retro){
       <v-col>
         <v-card class="rounded-lg elevation-2 pa-8 text-center text-medium-emphasis">
           No sprints for this sprint yet.
-          <span v-if="isAdmin"> Click "New Sprint" to create your first sprint for this sprint.</span>
+          <span v-if="isAdmin || isProjectAdmin"> Click "New Sprint" to create your first sprint for this sprint.</span>
         </v-card>
       </v-col>
     </v-row>

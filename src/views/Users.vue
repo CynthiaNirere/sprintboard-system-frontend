@@ -11,7 +11,6 @@ const search = ref("");
 const userActivityLogs = ref([]);
 const tickets = ref([]);
 const logSearch = ref("");
-const itemsPerPage = ref(5);
 
 const checkRequired = (value) => {
   if (value) return true;

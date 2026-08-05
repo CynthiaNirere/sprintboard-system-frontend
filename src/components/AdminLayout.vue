@@ -49,6 +49,9 @@ async function getAllProjects() {
       @select-project="(project) => currentProject = project"
       @project-added="getAllProjects()"
       @project-deleted="getAllProjects()"
+      @sprint-added="getAllProjects()"
+      @sprint-updated="getAllProjects()"
+      @sprint-deleted="getAllProjects()"
     />
   </div>
 

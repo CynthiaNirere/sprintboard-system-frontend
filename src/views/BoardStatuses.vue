@@ -3,7 +3,6 @@ import { onMounted, ref, watch } from "vue";
 import BoardStatusesServices from "../services/BoardStatusesServices";
 
 const user = ref(null);
-const search = ref("");
 const boardStatuses = ref([]);
 
 const snackbar = ref({
@@ -14,47 +13,13 @@ const snackbar = ref({
 
 const props = defineProps(['activeProject']);
 
-watch(() => props.activeProject, async (newProject) => {
-  if (newProject) {
-    try {
-      await getBoardStatuses(newProject.id);
-    } catch (err) {
-      console.log(err);
-    }
-  }
-}, { immediate: true});
-
-
-async function getBoardStatuses(projectId) {
-  await BoardStatusesServices.getBoardStatusesForProject(projectId)
-    .then((response) => {
-      boardStatuses.value = response.data;
-    })
-    .catch((error) => {
-      console.log(error);
-      boardStatuses.value = [];
-      snackbar.value.value = true;
-      snackbar.value.color = "error";
-      snackbar.value.text = error.response?.data?.message || "Error loading board statuses for project";       
-    });
-}
-
-async function addBoardStatus() {
-  if (newBoardStatus.value.name) {
-    newBoardStatus.value.projectId = props.activeProject.id;
-
-    if (boardStatuses.value.length === 0) {
-      newBoardStatus.value.columnOrder = 1;
-    }
-
-  }
-}
-
 const newBoardStatus = ref({
   projectId: null,
-  name: "",
+  name: null,
   columnOrder: null
 });
+
+const currentBoardStatus = ref()
 
 const githubStatuses = [
   {
@@ -71,11 +36,126 @@ const githubStatuses = [
   }
 ];
 
+watch(() => props.activeProject, async (newProject) => {
+  if (newProject) {
+    try {
+      await getBoardStatuses(newProject.id);
+    } catch (err) {
+      console.log(err);
+    }
+  }
+}, { immediate: true});
+
 onMounted(async () => {
   user.value = JSON.parse(localStorage.getItem("user"));
   await getBoardStatuses(props.activeProject?.id);
 });
 
+async function getBoardStatuses(projectId) {
+  await BoardStatusesServices.getBoardStatusesForProject(projectId)
+    .then((response) => {
+      boardStatuses.value = response.data;
+    })
+    .catch((error) => {
+      console.log(error);
+      boardStatuses.value = [];
+      snackbar.value.value = true;
+      snackbar.value.color = "error";
+      snackbar.value.text = error.response?.data?.message || "Error loading board statuses for project";       
+    });
+}
+
+async function moveStatusUp(boardStatus) {
+  const maxColumnOrder = Math.max(...boardStatuses.value.map(boardStatus => boardStatus.columnOrder));
+
+  if (boardStatus.columnOrder > 1) {
+    const previousBoardStatus = await BoardStatusesServices.getboardStatusByColumnOrder(props.activeProject?.id, boardStatus.columnOrder - 1);
+    previousBoardStatus.data.columnOrder = boardStatus.columnOrder;
+    await BoardStatusesServices.updateboardStatus(previousBoardStatus.data.id, previousBoardStatus.data);
+  
+    boardStatus.columnOrder = boardStatus.columnOrder - 1;
+    await BoardStatusesServices.updateboardStatus(boardStatus.id, boardStatus);
+  
+    await getBoardStatuses(props.activeProject?.id);
+  }
+  else {
+    const endingBoardStatus = await BoardStatusesServices.getboardStatusByColumnOrder(props.activeProject?.id, maxColumnOrder);
+    endingBoardStatus.data.columnOrder = boardStatus.columnOrder;
+    await BoardStatusesServices.updateboardStatus(endingBoardStatus.data.id, endingBoardStatus.data);
+  
+    boardStatus.columnOrder = maxColumnOrder;
+    await BoardStatusesServices.updateboardStatus(boardStatus.id, boardStatus);
+  
+    await getBoardStatuses(props.activeProject?.id);    
+  }
+}
+
+async function moveStatusDown(boardStatus) {
+  const maxColumnOrder = Math.max(...boardStatuses.value.map(boardStatus => boardStatus.columnOrder));
+  const minColumnOrder = Math.min(...boardStatuses.value.map(boardStatus => boardStatus.columnOrder));
+
+  if (boardStatus.columnOrder < maxColumnOrder) {
+    const nextBoardStatus = await BoardStatusesServices.getboardStatusByColumnOrder(props.activeProject?.id, boardStatus.columnOrder + 1);
+    nextBoardStatus.data.columnOrder = boardStatus.columnOrder;
+    await BoardStatusesServices.updateboardStatus(nextBoardStatus.data.id, nextBoardStatus.data);
+  
+    boardStatus.columnOrder = boardStatus.columnOrder + 1;
+    await BoardStatusesServices.updateboardStatus(boardStatus.id, boardStatus);
+  
+    await getBoardStatuses(props.activeProject?.id);
+  }
+  else {
+    const startingBoardStatus = await BoardStatusesServices.getboardStatusByColumnOrder(props.activeProject?.id, minColumnOrder);
+    startingBoardStatus.data.columnOrder = boardStatus.columnOrder;
+    await BoardStatusesServices.updateboardStatus(startingBoardStatus.data.id, startingBoardStatus.data);
+  
+    boardStatus.columnOrder = minColumnOrder;
+    await BoardStatusesServices.updateboardStatus(boardStatus.id, boardStatus);
+  
+    await getBoardStatuses(props.activeProject?.id);    
+  }
+}
+
+async function deleteStatus(boardStatus) {
+  await BoardStatusesServices.deleteboardStatus(boardStatus.id);
+  await getBoardStatuses(props.activeProject?.id);
+}
+
+async function addBoardStatus() {
+  if (!newBoardStatus.value.name) {
+    snackbar.value.value = true;
+    snackbar.value.color = "error";
+    snackbar.value.text = "You must enter a status name first!"; 
+  }
+    
+  newBoardStatus.value.projectId = props.activeProject.id;
+
+  if (boardStatuses.value.length === 0) {
+    newBoardStatus.value.columnOrder = 1;
+  }
+  else {
+    const maxColumnOrder = Math.max(...boardStatuses.value.map(boardStatus => boardStatus.columnOrder));
+    newBoardStatus.value.columnOrder = maxColumnOrder + 1;
+  }
+
+  await BoardStatusesServices.addboardStatus(newBoardStatus.value)
+    .then(async (data) => {
+      snackbar.value.value = true;
+      snackbar.value.color = "green";
+      snackbar.value.text = "Board status successfully added!";
+      newBoardStatus.value.projectId = null;
+      newBoardStatus.value.name = "";
+      newBoardStatus.value.columnOrder = null;
+    })
+    .catch((error) => {
+      console.log(error);
+      snackbar.value.value = true;
+      snackbar.value.color = "error";
+      snackbar.value.text = error.response.data.message || "Error adding board status";
+    });
+  
+  await getBoardStatuses(props.activeProject?.id);
+}
 </script>
 
 <template>
@@ -119,18 +199,24 @@ onMounted(async () => {
             
             <div class="d-flex ga-2 justify-end action-buttons">
               <div class="d-flex justify-center align-center arrow-background">
-                <v-icon 
+                <v-icon
+                  v-model="boardStatus.columnOrder"
                   class="board-status-button"
                   size="20" 
-                  color="#4C5160">
+                  color="#4C5160"
+                  @click="moveStatusUp(boardStatus)"
+                >
                   mdi-arrow-up
                 </v-icon>
               </div>
               <div class="d-flex justify-center align-center arrow-background">
                 <v-icon 
+                  v-model="boardStatus.columnOrder"
                   class="board-status-button"
                   size="20" 
-                  color="#4C5160">
+                  color="#4C5160"
+                  @click="moveStatusDown(boardStatus)"
+                >
                   mdi-arrow-down
                 </v-icon>
               </div>
@@ -138,7 +224,9 @@ onMounted(async () => {
                 <v-icon 
                   class="board-status-button"
                   size="20" 
-                  color="#C0554C">
+                  color="#C0554C"
+                  @click="deleteStatus(boardStatus)"
+                >
                   mdi-trash-can-outline
                 </v-icon>
               </div>
@@ -154,13 +242,13 @@ onMounted(async () => {
             density="comfortable"
             hide-details
             clearable
-            class="mt-6 mb-4 pb-3 pl-4 user-search-bar"
+            class="mt-6 mb-2 pb-3 px-5 new-status-name"
           ></v-text-field>
 
           <v-btn
             variant="flat"
-            class="d-flex justify-center align-center px-7 pt-6 pb-7 mt-2 text-none"
-            style="background-color: white; border: 1px solid rgba(153, 153, 153, 0.658); border-radius: 10px;"
+            class="mt-4 text-none"
+            style="background-color: white; border: 1px solid rgba(153, 153, 153, 0.658); border-radius: 10px; height: 3.4rem; width: 8rem"
             rounded="lg"
             prepend-icon="mdi-plus"
             @click="addBoardStatus()"
@@ -252,7 +340,7 @@ onMounted(async () => {
   width: 40%;
 }
 
-.user-search-bar {
+.new-status-name {
   background-color: white;
   border: 1px solid rgba(153, 153, 153, 0.658);
   border-radius: 10px;

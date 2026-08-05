@@ -7,6 +7,9 @@ export default {
   getboardStatus(id) {
     return apiClient.get("boardStatus/" + id);
   },
+  getboardStatusByColumnOrder(projectId, columnOrder) {
+    return apiClient.get("boardStatus/" + projectId + "/column/" + columnOrder);
+  },
   getBoardStatusesForProject(projectId) {
     return apiClient.get("boardStatus/project/" + projectId);
   },
@@ -19,7 +22,6 @@ export default {
   deleteboardStatus(boardStatusId) {
     return apiClient.delete("boardStatus/" + boardStatusId);
   },
-
   adminRefundboardStatus(boardStatusId, refundAmount) {
     return apiClient.delete("boardStatus/" + boardStatusId + "/refund", { data: { refundAmount } });
   },

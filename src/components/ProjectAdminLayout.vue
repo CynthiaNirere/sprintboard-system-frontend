@@ -46,6 +46,9 @@ async function getProject(projectId) {
       :active-project="currentProject"
       :projects="[currentProject]"
       @select-project="(project) => currentProject = project"
+      @sprint-added="getProject(currentProject.id)"
+      @sprint-updated="getProject(currentProject.id)"
+      @sprint-deleted="getProject(currentProject.id)"
     />
   </div>
 

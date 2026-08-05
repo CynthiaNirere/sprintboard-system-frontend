@@ -149,13 +149,13 @@ const filteredLogs = computed(() => {
 
       const timeDifference = (now - logData) / (1000 * 60 * 60 * 24);
 
-      if (selectedTimeRange.value === "24 HOURS && timeDifference > 1") {
+      if ((selectedTimeRange.value === "24 HOURS") && (timeDifference > 1)) {
         return false;
       }
-      if (selectedTimeRange.value === "7 DAYS && timeDifference > 7") {
+      if ((selectedTimeRange.value === "7 DAYS") && (timeDifference > 7)) {
         return false;
       }
-      if (selectedTimeRange.value === "30 DAYS && timeDifference > 30") {
+      if ((selectedTimeRange.value === "30 DAYS") && (timeDifference > 30)) {
         return false;
       }
     }

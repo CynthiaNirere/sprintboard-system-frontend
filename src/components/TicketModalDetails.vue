@@ -2,9 +2,6 @@
 import { defineProps, onMounted, defineEmits, ref, toRaw} from "vue";
 import TicketServices from "../services/TicketServices";
 import {onClickOutside} from '@vueuse/core'
-import TicketModalHeader from "./TicketModalHeader.vue";
-import TicketModalNav from "./TicketModalNav.vue";
-import TicketModalFooter from "./TicketModalFooter.vue"
 
 const props = defineProps({
   isOpen: Boolean,
@@ -57,6 +54,7 @@ async function submit(){
   }
 }
 
+
 async function del(){
   await TicketServices.deleteTicket(props.ticket.id)
     .then(() => {
@@ -74,38 +72,80 @@ async function del(){
   emit('modal-close');
 
 }
+
 </script>
 
 <template>
   <div v-if="isOpen" class="modal-mask">
     <div class="modal-wrapper">
       <div class="modal-container" ref="target">
-        <TicketModalHeader 
-          :activeTicket="props.ticket"
-        />
-        <TicketModalNav />
-        <TicketModalFooter />
+        <v-form>
+        <div class="modal-header">
+        </div>
+        <div class="">
+            <v-text-field
+            v-model="ticket.title"
+            label="title"
+            required
+          ></v-text-field>
+
+          <v-container class="pb-0">
+            <v-divider></v-divider>
+          </v-container>
+
+
+
+          <v-container class="pt-0">
+            <v-divider></v-divider>
+          </v-container>
+
+          <v-textarea 
+            v-model="ticket.description"
+            label="description"
+            required
+          ></v-textarea >
+          <div class="d-flex ga-4">
+
+            <v-select
+              v-model="ticket.type"
+              label="type"
+              required
+              :items="['FEATURE', 'ENHANCEMENT', 'BUG']"
+            ></v-select>
+            <v-select
+              v-model="ticket.priority"
+              label="priority"
+              :items="['LOW', 'MEDIUM', 'HIGH']"
+              required
+            ></v-select>
+            <v-select
+              v-model="ticket.storyPoints"
+              label="story points"
+              :items="[0, 1, 2, 3, 5, 8, 13, 21, 34, 55]"
+              required
+            ></v-select>
+          </div>
+          <v-text-field
+            v-model="ticket.githubBranchName"
+            label="github branch name"
+          ></v-text-field>
+          <div class="d-flex ga-4">
+
+            <v-text-field
+              v-model="ticket.githubPrURL"
+              label="github PrURL"
+              class="w-75"
+            ></v-text-field>
+            <v-text-field
+              v-model="ticket.githubIssueNumber"
+              label="github issue number"
+              type="number"
+            ></v-text-field>
+          </div>
+        </div>
+
+      </v-form>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.modal-mask {
-  position: fixed;
-  z-index: 1007;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-}
-.modal-container {
-  width: 75%;
-  margin: 150px auto;
-  padding: 20px 30px;
-  background-color: #fff;
-  border-radius: 2px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
-}
-</style>

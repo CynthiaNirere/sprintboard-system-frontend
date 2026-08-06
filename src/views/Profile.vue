@@ -47,7 +47,27 @@ async function getProjects() {
     });
 }
 
+const githubFieldStatus = ref({ type: null, message: "" }); // type: "success" | "error" | null
+
 async function saveAccountDetails() {
+  githubFieldStatus.value = { type: null, message: "" };
+
+  // Only validate if they've actually entered something — an empty
+  // GitHub account is valid, it just means "not linked."
+  if (user.value.githubAccount) {
+    const username = extractGithubUsername(user.value.githubAccount);
+    const isValid = await verifyGithubAccount(username);
+    if (!isValid) {
+      githubFieldStatus.value = {
+        type: "error",
+        message: `"${user.value.githubAccount}" doesn't look like a real GitHub account.`,
+      };
+      return;
+    }
+    // Save the extracted username, not whatever was pasted (e.g. a full URL).
+    user.value.githubAccount = username;
+  }
+
   isSaving.value = true;
   await UserServices.updateUser(user.value.id, {
     firstName: user.value.firstName,
@@ -60,6 +80,9 @@ async function saveAccountDetails() {
       snackbar.value.value = true;
       snackbar.value.color = "success";
       snackbar.value.text = "Profile updated!";
+      if (user.value.githubAccount) {
+        githubFieldStatus.value = { type: "success", message: "Saved successfully" };
+      }
       const updated = { ...storedUser, ...user.value };
       localStorage.setItem("user", JSON.stringify(updated));
     })
@@ -72,6 +95,31 @@ async function saveAccountDetails() {
     .finally(() => {
       isSaving.value = false;
     });
+}
+
+// Pulls just the username out of a pasted GitHub URL — accepts either
+// "CynthiaNirere" or "https://github.com/CynthiaNirere" as valid input.
+function extractGithubUsername(input) {
+  const trimmed = input.trim();
+  const urlMatch = trimmed.match(/^(?:https?:\/\/)?(?:www\.)?github\.com\/([a-zA-Z\d-]+)\/?.*$/i);
+  return urlMatch ? urlMatch[1] : trimmed;
+}
+
+// Checks the value looks like a real GitHub username format, then
+// confirms an account with that exact name actually exists.
+async function verifyGithubAccount(username) {
+  const validFormat = /^[a-zA-Z\d](?:[a-zA-Z\d]|-(?=[a-zA-Z\d])){0,38}$/.test(username);
+  if (!validFormat) return false;
+
+  try {
+    const response = await fetch(`https://api.github.com/users/${username}`);
+    return response.ok;
+  } catch (error) {
+    // If GitHub itself is unreachable, don't block saving on that —
+    // the format already checked out, so let it through.
+    console.log("Could not reach GitHub to verify account:", error);
+    return true;
+  }
 }
 </script>
 <template>
@@ -176,8 +224,12 @@ async function saveAccountDetails() {
         variant="outlined"
         density="comfortable"
         placeholder="e.g. jpatel-dev"
-        hint="Used for branch automation"
-        persistent-hint
+        :hint="githubFieldStatus.type ? '' : 'Used for branch automation'"
+        :persistent-hint="!githubFieldStatus.type"
+        :error="githubFieldStatus.type === 'error'"
+        :error-messages="githubFieldStatus.type === 'error' ? [githubFieldStatus.message] : []"
+        :success-messages="githubFieldStatus.type === 'success' ? [githubFieldStatus.message] : []"
+        @update:model-value="githubFieldStatus = { type: null, message: '' }"
       ></v-text-field>
       <div class="d-flex justify-end mt-4">
         <v-btn

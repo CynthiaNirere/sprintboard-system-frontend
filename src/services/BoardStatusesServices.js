@@ -4,25 +4,25 @@ export default {
   getBoardStatuses() {
     return apiClient.get("boardStatus");
   },
-  getboardStatus(id) {
+  getBoardStatus(id) {
     return apiClient.get("boardStatus/" + id);
   },
-  getboardStatusByColumnOrder(projectId, columnOrder) {
+  getBoardStatusByColumnOrder(projectId, columnOrder) {
     return apiClient.get("boardStatus/" + projectId + "/column/" + columnOrder);
   },
   getBoardStatusesForProject(projectId) {
     return apiClient.get("boardStatus/project/" + projectId);
   },
-  addboardStatus(boardStatus) {
-    return apiClient.post("boardStatus", boardStatus);
+  addBoardStatus(projectId, boardStatus) {
+    return apiClient.post("project/" + projectId + "/boardStatus", boardStatus);
   },
-  updateboardStatus(boardStatusId, boardStatus) {
-    return apiClient.put("boardStatus/" + boardStatusId, boardStatus);
+  updateBoardStatus(projectId, boardStatusId, boardStatus) {
+    return apiClient.put("project/" + projectId + "/boardStatus/" + boardStatusId, boardStatus);
   },
-  deleteboardStatus(boardStatusId) {
-    return apiClient.delete("boardStatus/" + boardStatusId);
+  deleteBoardStatus(projectId, boardStatusId) {
+    return apiClient.delete("project/" + projectId + "/boardStatus/" + boardStatusId);
   },
-  adminRefundboardStatus(boardStatusId, refundAmount) {
+  adminRefundBoardStatus(boardStatusId, refundAmount) {
     return apiClient.delete("boardStatus/" + boardStatusId + "/refund", { data: { refundAmount } });
   },
 };

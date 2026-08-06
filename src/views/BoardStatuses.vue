@@ -16,23 +16,22 @@ const props = defineProps(['activeProject']);
 const newBoardStatus = ref({
   projectId: null,
   name: null,
-  columnOrder: null
+  columnOrder: null,
+  githubEvent: "none"
 });
-
-const currentBoardStatus = ref()
 
 const githubStatuses = [
   {
-    title: "GitHub: None", value: "GitHub: None"
+    title: "GitHub: None", value: "none"
   },
   {
-    title: "GitHub: Branch created", value: "GitHub: Branch created"
+    title: "GitHub: Branch created", value: "branch_created"
   },
   {
-    title: "GitHub: PR opened", value: "GitHub: PR opened"
+    title: "GitHub: PR opened", value: "pr_opened"
   },
   {
-    title: "GitHub: PR merged", value: "GitHub: PR merged"
+    title: "GitHub: PR merged", value: "pr_merged"
   }
 ];
 
@@ -69,22 +68,22 @@ async function moveStatusUp(boardStatus) {
   const maxColumnOrder = Math.max(...boardStatuses.value.map(boardStatus => boardStatus.columnOrder));
 
   if (boardStatus.columnOrder > 1) {
-    const previousBoardStatus = await BoardStatusesServices.getboardStatusByColumnOrder(props.activeProject?.id, boardStatus.columnOrder - 1);
+    const previousBoardStatus = await BoardStatusesServices.getBoardStatusByColumnOrder(props.activeProject?.id, boardStatus.columnOrder - 1);
     previousBoardStatus.data.columnOrder = boardStatus.columnOrder;
-    await BoardStatusesServices.updateboardStatus(previousBoardStatus.data.id, previousBoardStatus.data);
+    await BoardStatusesServices.updateBoardStatus(props.activeProject?.id, previousBoardStatus.data.id, previousBoardStatus.data);
   
     boardStatus.columnOrder = boardStatus.columnOrder - 1;
-    await BoardStatusesServices.updateboardStatus(boardStatus.id, boardStatus);
+    await BoardStatusesServices.updateBoardStatus(props.activeProject?.id, boardStatus.id, boardStatus);
   
     await getBoardStatuses(props.activeProject?.id);
   }
   else {
-    const endingBoardStatus = await BoardStatusesServices.getboardStatusByColumnOrder(props.activeProject?.id, maxColumnOrder);
+    const endingBoardStatus = await BoardStatusesServices.getBoardStatusByColumnOrder(props.activeProject?.id, maxColumnOrder);
     endingBoardStatus.data.columnOrder = boardStatus.columnOrder;
-    await BoardStatusesServices.updateboardStatus(endingBoardStatus.data.id, endingBoardStatus.data);
+    await BoardStatusesServices.updateBoardStatus(props.activeProject?.id, endingBoardStatus.data.id, endingBoardStatus.data);
   
     boardStatus.columnOrder = maxColumnOrder;
-    await BoardStatusesServices.updateboardStatus(boardStatus.id, boardStatus);
+    await BoardStatusesServices.updateBoardStatus(props.activeProject?.id, boardStatus.id, boardStatus);
   
     await getBoardStatuses(props.activeProject?.id);    
   }
@@ -95,30 +94,57 @@ async function moveStatusDown(boardStatus) {
   const minColumnOrder = Math.min(...boardStatuses.value.map(boardStatus => boardStatus.columnOrder));
 
   if (boardStatus.columnOrder < maxColumnOrder) {
-    const nextBoardStatus = await BoardStatusesServices.getboardStatusByColumnOrder(props.activeProject?.id, boardStatus.columnOrder + 1);
+    const nextBoardStatus = await BoardStatusesServices.getBoardStatusByColumnOrder(props.activeProject?.id, boardStatus.columnOrder + 1);
     nextBoardStatus.data.columnOrder = boardStatus.columnOrder;
-    await BoardStatusesServices.updateboardStatus(nextBoardStatus.data.id, nextBoardStatus.data);
+    await BoardStatusesServices.updateBoardStatus(props.activeProject?.id, nextBoardStatus.data.id, nextBoardStatus.data);
   
     boardStatus.columnOrder = boardStatus.columnOrder + 1;
-    await BoardStatusesServices.updateboardStatus(boardStatus.id, boardStatus);
+    await BoardStatusesServices.updateBoardStatus(props.activeProject?.id, boardStatus.id, boardStatus);
   
     await getBoardStatuses(props.activeProject?.id);
   }
   else {
-    const startingBoardStatus = await BoardStatusesServices.getboardStatusByColumnOrder(props.activeProject?.id, minColumnOrder);
+    const startingBoardStatus = await BoardStatusesServices.getBoardStatusByColumnOrder(props.activeProject?.id, minColumnOrder);
     startingBoardStatus.data.columnOrder = boardStatus.columnOrder;
-    await BoardStatusesServices.updateboardStatus(startingBoardStatus.data.id, startingBoardStatus.data);
+    await BoardStatusesServices.updateBoardStatus(props.activeProject?.id, startingBoardStatus.data.id, startingBoardStatus.data);
   
     boardStatus.columnOrder = minColumnOrder;
-    await BoardStatusesServices.updateboardStatus(boardStatus.id, boardStatus);
+    await BoardStatusesServices.updateBoardStatus(props.activeProject?.id, boardStatus.id, boardStatus);
   
     await getBoardStatuses(props.activeProject?.id);    
   }
 }
 
 async function deleteStatus(boardStatus) {
-  await BoardStatusesServices.deleteboardStatus(boardStatus.id);
-  await getBoardStatuses(props.activeProject?.id);
+  await BoardStatusesServices.deleteBoardStatus(props.activeProject?.id, boardStatus.id)
+    .then(async (response) => {
+      snackbar.value.value = true;
+      snackbar.value.color = "green";
+      snackbar.value.text = "Board status successfully deleted";
+      await getBoardStatuses(props.activeProject?.id);
+  })
+  .catch((error) => {
+    console.log(error);
+    snackbar.value.value = true;
+    snackbar.value.color = "error";
+    snackbar.value.text = error.response.data.message || "Error deleting board status";
+  });
+}
+
+async function updateBoardStatus(boardStatus) {
+  await BoardStatusesServices.updateBoardStatus(props.activeProject?.id, boardStatus.id, boardStatus)
+    .then(async (response) => {
+      snackbar.value.value = true;
+      snackbar.value.color = "green";
+      snackbar.value.text = "Board status updated successfully!";
+      await getBoardStatuses(props.activeProject?.id);    
+    })
+    .catch((error) => {
+      console.log(error);
+      snackbar.value.value = true;
+      snackbar.value.color = "error";
+      snackbar.value.text = error.response.data.message || "Error updating board status"; 
+    });
 }
 
 async function addBoardStatus() {
@@ -126,6 +152,7 @@ async function addBoardStatus() {
     snackbar.value.value = true;
     snackbar.value.color = "error";
     snackbar.value.text = "You must enter a status name first!"; 
+    return;
   }
     
   newBoardStatus.value.projectId = props.activeProject.id;
@@ -138,7 +165,7 @@ async function addBoardStatus() {
     newBoardStatus.value.columnOrder = maxColumnOrder + 1;
   }
 
-  await BoardStatusesServices.addboardStatus(newBoardStatus.value)
+  await BoardStatusesServices.addBoardStatus(props.activeProject?.id, newBoardStatus.value)
     .then(async (data) => {
       snackbar.value.value = true;
       snackbar.value.color = "green";
@@ -180,7 +207,7 @@ async function addBoardStatus() {
               </div>
 
               <v-select
-                v-model="boardStatus.githubAction"
+                v-model="boardStatus.githubEvent"
                 :items="githubStatuses"
                 item-title="title"
                 item-value="value"
@@ -194,13 +221,13 @@ async function addBoardStatus() {
                 :menu-icon="null"
                 append-inner-icon="mdi-chevron-down"
                 width="50%"
+                @update:modelValue="updateBoardStatus(boardStatus)"
               ></v-select>
             </div>
             
             <div class="d-flex ga-2 justify-end action-buttons">
               <div class="d-flex justify-center align-center arrow-background">
                 <v-icon
-                  v-model="boardStatus.columnOrder"
                   class="board-status-button"
                   size="20" 
                   color="#4C5160"
@@ -211,7 +238,6 @@ async function addBoardStatus() {
               </div>
               <div class="d-flex justify-center align-center arrow-background">
                 <v-icon 
-                  v-model="boardStatus.columnOrder"
                   class="board-status-button"
                   size="20" 
                   color="#4C5160"

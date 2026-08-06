@@ -1,19 +1,22 @@
 <script setup>
-import { ref, onMounted,watch } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import SprintServices from "../services/sprintServices.js";
 import TicketServices from "../services/TicketServices.js";
 import BoardStatusesServices from "../services/BoardStatusesServices.js";
 import RetroServices from "../services/retroServices.js"
+import projectServices from "../services/projectServices.js"
 import retro from "../components/retro.vue"
-
 
 const router = useRouter();
 const sprints = ref([]);
 const snackbar = ref({ value: false, color: "", text: "" });
 const user = JSON.parse(localStorage.getItem("user"));
 const isAdmin = user?.globalRole === "ADMIN";
+const isProjectAdmin = ref(false);
+
 const props = defineProps(['activeProject']);
+
 const sprintCompletion = ref([]);
 
 const showModal = ref(false);
@@ -39,7 +42,18 @@ const currentRetro = ref({});
 
 watch(() => props.activeProject, async (newProject) => {
   if (newProject) {    
+    isProjectAdmin.value = false;
     await getSprints();
+
+    const getProjectMembersResponse = await projectServices.getProjectMembers(props.activeProject?.id);
+    const currentProjectMembers = getProjectMembersResponse.data;
+
+    if (currentProjectMembers) {
+      const currentProjectMember = currentProjectMembers.find(u => u.id === user?.id);
+      if (currentProjectMember?.project_member?.projectRole === "PROJECT_ADMIN") {
+        isProjectAdmin.value = true;
+      }
+    }
   }
 }, { immediate: true});
 
@@ -48,7 +62,6 @@ async function getSprints() {
     const response = await SprintServices.getSprintsByProject(props.activeProject?.id);
 
     sprints.value = response.data;
-
     await Promise.all(
       sprints.value.map(async (sprint) => {
         sprintCompletion.value[sprint.id] = {
@@ -106,9 +119,10 @@ async function getPercentageOfSprint(sprintId){
 
 async function submitModal() {
   const { valid } = await form.value.validate();
+  const projectId = currentSprint.value.projectId;
   if (!valid) return;
   if(!isAdd.value){
-    await SprintServices.updateSprint(currentSprint.value.id, currentSprint.value)
+    await SprintServices.updateSprint(projectId, currentSprint.value.id, currentSprint.value)
         .then(() => {
         snackbar.value.value = true;
         snackbar.value.color = "green";
@@ -135,7 +149,7 @@ async function submitModal() {
     
       }
 
-      await SprintServices.addSprint(currentSprint.value)
+      await SprintServices.addSprint(projectId, currentSprint.value)
         .then(() => {
           showModal.value = false;
           snackbar.value.value = true;
@@ -156,7 +170,7 @@ async function submitModal() {
     currentSprint.value.lengthDays = Number(currentSprint.value.lengthDays);
     currentSprint.value.count = Number(currentSprint.value.count);
     isCreating.value = true;
-    await SprintServices.addRecurringSprints(currentSprint.value)
+    await SprintServices.addRecurringSprints(projectId, currentSprint.value)
         .then(() => {
           showModal.value = false;
           snackbar.value.value = true;
@@ -215,7 +229,8 @@ function confirmDelete(sprint) {
 
 async function deleteSprint() {
   isDeleting.value = true;
-  await SprintServices.deleteSprint(sprintToDelete.value.id)
+  const projectId = sprintToDelete.value.projectId;
+  await SprintServices.deleteSprint(projectId, sprintToDelete.value.id)
     .then(() => {
       showDeleteDialog.value = false;
       snackbar.value.value = true;
@@ -257,7 +272,6 @@ function displayDate(dateString) {
 async function getRetro(sprintId){
     RetroServices.findSprintRetro(sprintId)
     .then((response) => {
-        console.log("Here");
         console.log(response.data.retrospectiveItems);
         console.log(Array.isArray(response.data.retrospectiveItems));
       currentRetro.value = response.data;
@@ -333,7 +347,7 @@ async function updateRetro(retro){
           Sprints 
         </v-card-title>
       </v-col>
-      <v-col class="d-flex justify-end" v-if="isAdmin">
+      <v-col class="d-flex justify-end" v-if="isAdmin || isProjectAdmin">
         <v-btn color="primary" prepend-icon="mdi-plus" @click="addModal()">
           New Sprint
         </v-btn>
@@ -354,7 +368,7 @@ async function updateRetro(retro){
             <div>
 
                 <v-btn
-                v-if="isAdmin"
+                v-if="isAdmin || isProjectAdmin"
                   variant="outlined"
                   color="primary"
                   size="small"
@@ -363,7 +377,7 @@ async function updateRetro(retro){
                   Edit
                 </v-btn>
                 <v-btn
-                    v-if="isAdmin"
+                    v-if="isAdmin || isProjectAdmin"
                     icon="mdi-delete-outline"
                     variant="text"
                     color="error"
@@ -377,7 +391,7 @@ async function updateRetro(retro){
           <p class="text-caption text-medium-emphasis">
             {{ displayDate(sprint.startDate) || "No start date" }} - {{ displayDate(sprint.endDate) || "No end date" }}
           </p>
-          <v-row class="ma-1" ">
+          <v-row class="ma-1">
               <v-progress-linear color="blue-lighten-3" :model-value="sprintCompletion[sprint.id]?.percentage ?? 0"></v-progress-linear>
             <p class="text-caption text-medium-emphasis ">
              
@@ -404,7 +418,7 @@ async function updateRetro(retro){
       <v-col>
         <v-card class="rounded-lg elevation-2 pa-8 text-center text-medium-emphasis">
           No sprints for this sprint yet.
-          <span v-if="isAdmin"> Click "New Sprint" to create your first sprint for this sprint.</span>
+          <span v-if="isAdmin || isProjectAdmin"> Click "New Sprint" to create your first sprint for this sprint.</span>
         </v-card>
       </v-col>
     </v-row>

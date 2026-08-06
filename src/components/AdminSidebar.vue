@@ -134,7 +134,7 @@ function formatRole(role) {
           </div>
         </v-list-item>
         
-        <v-list-item class="mx-3 rounded-lg" active-class="active-tab">
+        <v-list-item :to="{ name: 'users' }" class="mx-3 rounded-lg" active-class="active-tab">
           <div class="d-flex ga-3 align-center">
             <v-icon>mdi-account-multiple-outline</v-icon>
             <span>Users</span>

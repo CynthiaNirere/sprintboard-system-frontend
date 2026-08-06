@@ -4,16 +4,16 @@ export default {
   getSprintsByProject(projectId) {
     return apiClient.get("sprints?projectId=" + projectId);
   },
-  addSprint(sprint) {
-    return apiClient.post("sprints", sprint);
+  addSprint(projectId, sprint) {
+    return apiClient.post("project/" + projectId + "/sprints", sprint);
   },
-  addRecurringSprints(data) {
-    return apiClient.post("sprints/recurring", data);
+  addRecurringSprints(projectId, data) {
+    return apiClient.post("project/" + projectId + "/sprints/recurring", data);
   },
-  updateSprint(sprintId, sprint) {
-    return apiClient.put("sprints/" + sprintId, sprint);
+  updateSprint(projectId, sprintId, sprint) {
+    return apiClient.put("project/" + projectId + "/sprints/" + sprintId, sprint);
   },
-  deleteSprint(sprintId) {
-    return apiClient.delete("sprints/" + sprintId);
+  deleteSprint(projectId, sprintId) {
+    return apiClient.delete("project/" + projectId + "/sprints/" + sprintId);
   },
 };

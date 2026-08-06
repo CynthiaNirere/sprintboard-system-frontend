@@ -160,26 +160,6 @@ async function verifyGithubAccount(username) {
     </v-card>
 
     <p class="text-caption text-medium-emphasis font-weight-bold mb-2">
-      MY PROJECTS
-    </p>
-    <v-card class="rounded-lg elevation-2 pa-5 mb-6">
-      <template v-if="projects.length > 0">
-        <v-chip
-          v-for="project in projects"
-          :key="project.id"
-          class="mr-2 mb-2"
-          color="primary"
-          variant="tonal"
-          prepend-icon="mdi-folder-outline"
-        >
-          {{ project.name }}
-        </v-chip>
-      </template>
-      <p v-else class="text-body-2 text-medium-emphasis">
-        You haven't been added to any projects yet.
-      </p>
-    </v-card>
-    <p class="text-caption text-medium-emphasis font-weight-bold mb-2">
       ACCOUNT DETAILS
     </p>
     <v-card class="rounded-lg elevation-2 pa-5">

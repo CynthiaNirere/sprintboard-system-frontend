@@ -32,6 +32,9 @@ const githubStatuses = [
   },
   {
     title: "GitHub: PR merged", value: "pr_merged"
+  },
+  {
+    title: "App: Create branch in GitHub", value: "create_branch"
   }
 ];
 
@@ -65,54 +68,53 @@ async function getBoardStatuses(projectId) {
 }
 
 async function moveStatusUp(boardStatus) {
-  const maxColumnOrder = Math.max(...boardStatuses.value.map(boardStatus => boardStatus.columnOrder));
+  const currentStatusIndex = boardStatuses.value.findIndex(status => status.id === boardStatus.id);
 
-  if (boardStatus.columnOrder > 1) {
-    const previousBoardStatus = await BoardStatusesServices.getBoardStatusByColumnOrder(props.activeProject?.id, boardStatus.columnOrder - 1);
-    previousBoardStatus.data.columnOrder = boardStatus.columnOrder;
-    await BoardStatusesServices.updateBoardStatus(props.activeProject?.id, previousBoardStatus.data.id, previousBoardStatus.data);
-  
-    boardStatus.columnOrder = boardStatus.columnOrder - 1;
+  if (currentStatusIndex > 0) {
+    const previousBoardStatus = await boardStatuses.value[currentStatusIndex - 1];
+    const tempColumnOrder = boardStatus.columnOrder;
+    boardStatus.columnOrder = previousBoardStatus.columnOrder;
+    previousBoardStatus.columnOrder = tempColumnOrder;
+
+    await BoardStatusesServices.updateBoardStatus(props.activeProject?.id, previousBoardStatus.id, previousBoardStatus);
     await BoardStatusesServices.updateBoardStatus(props.activeProject?.id, boardStatus.id, boardStatus);
-  
-    await getBoardStatuses(props.activeProject?.id);
   }
   else {
-    const endingBoardStatus = await BoardStatusesServices.getBoardStatusByColumnOrder(props.activeProject?.id, maxColumnOrder);
-    endingBoardStatus.data.columnOrder = boardStatus.columnOrder;
-    await BoardStatusesServices.updateBoardStatus(props.activeProject?.id, endingBoardStatus.data.id, endingBoardStatus.data);
-  
-    boardStatus.columnOrder = maxColumnOrder;
+    const endingBoardStatus = boardStatuses.value[boardStatuses.value.length - 1];
+    const tempColumnOrder = boardStatus.columnOrder;
+    boardStatus.columnOrder = endingBoardStatus.columnOrder;
+    endingBoardStatus.columnOrder = tempColumnOrder;
+
+    await BoardStatusesServices.updateBoardStatus(props.activeProject?.id, endingBoardStatus.id, endingBoardStatus);
     await BoardStatusesServices.updateBoardStatus(props.activeProject?.id, boardStatus.id, boardStatus);
-  
-    await getBoardStatuses(props.activeProject?.id);    
   }
+
+  await getBoardStatuses(props.activeProject?.id);    
 }
 
 async function moveStatusDown(boardStatus) {
-  const maxColumnOrder = Math.max(...boardStatuses.value.map(boardStatus => boardStatus.columnOrder));
-  const minColumnOrder = Math.min(...boardStatuses.value.map(boardStatus => boardStatus.columnOrder));
+  const currentStatusIndex = boardStatuses.value.findIndex(status => status.id === boardStatus.id);
 
-  if (boardStatus.columnOrder < maxColumnOrder) {
-    const nextBoardStatus = await BoardStatusesServices.getBoardStatusByColumnOrder(props.activeProject?.id, boardStatus.columnOrder + 1);
-    nextBoardStatus.data.columnOrder = boardStatus.columnOrder;
-    await BoardStatusesServices.updateBoardStatus(props.activeProject?.id, nextBoardStatus.data.id, nextBoardStatus.data);
-  
-    boardStatus.columnOrder = boardStatus.columnOrder + 1;
+  if (currentStatusIndex < boardStatuses.value.length - 1) {
+    const nextBoardStatus = boardStatuses.value[currentStatusIndex + 1];
+    const tempColumnOrder = boardStatus.columnOrder;
+    boardStatus.columnOrder = nextBoardStatus.columnOrder;
+    nextBoardStatus.columnOrder = tempColumnOrder;
+
+    await BoardStatusesServices.updateBoardStatus(props.activeProject?.id, nextBoardStatus.id, nextBoardStatus);
     await BoardStatusesServices.updateBoardStatus(props.activeProject?.id, boardStatus.id, boardStatus);
-  
-    await getBoardStatuses(props.activeProject?.id);
   }
   else {
-    const startingBoardStatus = await BoardStatusesServices.getBoardStatusByColumnOrder(props.activeProject?.id, minColumnOrder);
-    startingBoardStatus.data.columnOrder = boardStatus.columnOrder;
-    await BoardStatusesServices.updateBoardStatus(props.activeProject?.id, startingBoardStatus.data.id, startingBoardStatus.data);
-  
-    boardStatus.columnOrder = minColumnOrder;
+    const startingBoardStatus = boardStatuses.value[0];
+    const tempColumnOrder = boardStatus.columnOrder;
+    boardStatus.columnOrder = startingBoardStatus.columnOrder;
+    startingBoardStatus.columnOrder = tempColumnOrder;
+
+    await BoardStatusesServices.updateBoardStatus(props.activeProject?.id, startingBoardStatus.id, startingBoardStatus);
     await BoardStatusesServices.updateBoardStatus(props.activeProject?.id, boardStatus.id, boardStatus);
-  
-    await getBoardStatuses(props.activeProject?.id);    
   }
+
+  await getBoardStatuses(props.activeProject?.id);    
 }
 
 async function deleteStatus(boardStatus) {

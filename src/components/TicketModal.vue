@@ -81,10 +81,18 @@ async function del(){
     <div class="modal-wrapper">
       <div class="modal-container" ref="target">
         <TicketModalHeader 
+          class="px-4 pt-4"
+          :activeTicket="props.ticket"
+          @modal-close="emit('modal-close')"
+        />
+        <TicketModalNav 
+          class="px-4"
           :activeTicket="props.ticket"
         />
-        <TicketModalNav />
-        <TicketModalFooter />
+        <TicketModalFooter 
+          class="pb-4"
+        
+        />
       </div>
     </div>
   </div>
@@ -101,9 +109,9 @@ async function del(){
   background-color: rgba(0, 0, 0, 0.5);
 }
 .modal-container {
-  width: 75%;
+  width: 50%;
   margin: 150px auto;
-  padding: 20px 30px;
+  /* padding: 20px 30px; */
   background-color: #fff;
   border-radius: 2px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);

@@ -37,7 +37,7 @@ function closeModal() {
 </script>
 
 <template>
-  <div class="modal-header">
+  <div>
     <div class="d-flex">
       <div class="d-flex justify-start ga-2">
         <v-chip 
@@ -75,7 +75,7 @@ function closeModal() {
         <v-icon 
           size="20" 
           color="#4b5160"
-          @click="deleteStatus(boardStatus)"
+          @click="closeModal()"
         >
           mdi-close
         </v-icon>
@@ -92,10 +92,6 @@ function closeModal() {
 </template>
 
 <style scoped>
-.modal-header {
-  border-bottom: 1px solid #E6E6E1;
-}
-
 .close-background {
   background-color: #EFEFEC;
   border-radius: 30%;

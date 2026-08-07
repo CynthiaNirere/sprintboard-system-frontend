@@ -6,6 +6,7 @@ import TicketModalComments from "./TicketModalComments.vue";
 import TicketModalAttachments from "./TicketModalAttachments.vue";
 import TicketModalHistory from "./TicketModalHistory.vue";
 
+const props = defineProps(['activeTicket']);
 const tab = shallowRef('details');
 const tabs = [
   {
@@ -42,6 +43,7 @@ const tabs = [
     :items="tabs"
     grow
     color="#2E4DC9"
+    class="nav-borders"
   >
     <template v-slot:tab="{ item }">
       <v-tab
@@ -53,7 +55,17 @@ const tabs = [
     </template>
 
     <template v-slot:item="{ item }">
-      <v-tabs-window-item :value="item.value"></v-tabs-window-item>
+      <v-tabs-window-item :value="item.value">
+        <component :is="item.value" :ticket="props.activeTicket"></component>
+
+      </v-tabs-window-item>
     </template>
   </v-tabs>
 </template>
+
+<style scoped>
+.nav-borders {
+  border-top: 1px solid #E6E6E1;
+  border-bottom: 1px solid #E6E6E1;
+}
+</style>

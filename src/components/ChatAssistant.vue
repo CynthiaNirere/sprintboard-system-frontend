@@ -1,27 +1,43 @@
 <script setup>
 import { ref, nextTick, onMounted } from "vue";
 import ChatServices from "../services/chatServices.js";
+import { eventBus } from "../services/eventBus.js";
 
 const isOpen = ref(false);
 const draft = ref("");
 const messages = ref([]); // [{ role: "user" | "assistant", text }]
 const history = ref([]);
 const isSending = ref(false);
+const abortController = ref(null);
 const snackbar = ref({ value: false, color: "", text: "" });
 const messageList = ref(null);
 
 const STORAGE_KEY = "chat_history";
 
-// Survives a page refresh (sessionStorage), but not meant to survive
-// logout — your logout handler should also clear this key so history
-// doesn't outlive the session.
+function getCurrentUserId() {
+  try {
+    const stored = localStorage.getItem("user");
+    return stored ? JSON.parse(stored).id : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+// Survives a page refresh (sessionStorage), but only for the user it
+// actually belongs to — sessionStorage isn't automatically cleared on
+// logout, so without checking userId here, a different user logging in
+// on the same tab would see the previous user's conversation.
 onMounted(() => {
   const saved = sessionStorage.getItem(STORAGE_KEY);
   if (saved) {
     try {
       const parsed = JSON.parse(saved);
-      messages.value = parsed.messages || [];
-      history.value = parsed.history || [];
+      if (parsed.userId === getCurrentUserId()) {
+        messages.value = parsed.messages || [];
+        history.value = parsed.history || [];
+      } else {
+        sessionStorage.removeItem(STORAGE_KEY);
+      }
     } catch (e) {
       sessionStorage.removeItem(STORAGE_KEY);
     }
@@ -37,22 +53,34 @@ async function sendMessage() {
   isSending.value = true;
   scrollToBottom();
 
-  await ChatServices.sendMessage(text, history.value)
+  abortController.value = new AbortController();
+
+  await ChatServices.sendMessage(text, history.value, abortController.value.signal)
     .then((response) => {
       messages.value.push({ role: "assistant", text: response.data.reply });
       history.value = response.data.history;
       persist();
+      eventBus.lastDataChange = Date.now();
     })
     .catch((error) => {
-      snackbar.value.value = true;
-      snackbar.value.color = "error";
-      snackbar.value.text =
-        error.response?.data?.message || "Error getting a response from the assistant.";
+      if (error.code === "ERR_CANCELED") {
+        messages.value.push({ role: "assistant", text: "(Cancelled)" });
+      } else {
+        snackbar.value.value = true;
+        snackbar.value.color = "error";
+        snackbar.value.text =
+          error.response?.data?.message || "Error getting a response from the assistant.";
+      }
     })
     .finally(() => {
       isSending.value = false;
+      abortController.value = null;
       scrollToBottom();
     });
+}
+
+function cancelMessage() {
+  abortController.value?.abort();
 }
 
 function clearConversation() {
@@ -64,7 +92,11 @@ function clearConversation() {
 function persist() {
   sessionStorage.setItem(
     STORAGE_KEY,
-    JSON.stringify({ messages: messages.value, history: history.value })
+    JSON.stringify({
+      userId: getCurrentUserId(),
+      messages: messages.value,
+      history: history.value,
+    })
   );
 }
 
@@ -85,7 +117,7 @@ function scrollToBottom() {
 
     <v-card v-if="isOpen" class="chat-panel rounded-lg elevation-8">
       <div class="d-flex justify-space-between align-center pa-3">
-        <v-card-title class="pa-0 text-h6 font-weight-bold">ChatBot Assistant</v-card-title>
+        <v-card-title class="pa-0 text-h6 font-weight-bold">Assistant</v-card-title>
         <v-btn icon="mdi-refresh" variant="text" size="small" @click="clearConversation"></v-btn>
       </div>
 
@@ -118,12 +150,11 @@ function scrollToBottom() {
           @keyup.enter="sendMessage"
         ></v-text-field>
         <v-btn
-          icon="mdi-send"
-          color="primary"
+          :icon="isSending ? 'mdi-close' : 'mdi-send'"
+          :color="isSending ? 'error' : 'primary'"
           class="ml-2"
-          :loading="isSending"
-          :disabled="!draft.trim()"
-          @click="sendMessage"
+          :disabled="!isSending && !draft.trim()"
+          @click="isSending ? cancelMessage() : sendMessage()"
         ></v-btn>
       </div>
     </v-card>

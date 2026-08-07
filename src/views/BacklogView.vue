@@ -3,6 +3,7 @@ import { ref, watch } from "vue";
 import TicketServices from "../services/TicketServices.js";
 import Ticket from "../components/Ticket.vue";
 import TicketModal from "../components/TicketModal.vue";
+import { eventBus } from "../services/eventBus.js";
 
 const props = defineProps(['activeProject', 'projects']);
 
@@ -26,6 +27,15 @@ watch(() => props.activeProject, async (newProject) => {
     await loadProjectData();
   }
 }, { immediate: true });
+
+// Refetch when the chatbot changes something — it operates on the same
+// data this page displays, but through a completely separate component
+// with no other connection to this one.
+watch(() => eventBus.lastDataChange, async () => {
+  if (props.activeProject) {
+    await loadProjectData();
+  }
+});
 
 async function loadProjectData() {
   sprintsWithTickets.value = {};
@@ -154,6 +164,19 @@ async function deleteTicket() {
     });
 }
 
+function parseLocalDate(dateString) {
+  const dateOnly = dateString.split("T")[0];
+  const [year, month, day] = dateOnly.split("-");
+  return new Date(Number(year), Number(month) - 1, Number(day));
+}
+
+function isSprintActive(sprint) {
+  return (
+    parseLocalDate(sprint.startDate) <= new Date() &&
+    parseLocalDate(sprint.endDate) >= new Date()
+  );
+}
+
 function sprintDuration(sprint) {
   return `${formatDate(sprint.startDate)} – ${formatDate(sprint.endDate)}`;
 }
@@ -244,8 +267,8 @@ function showError(error) {
                 </v-icon>
                 <h3 class="text-body-1 font-weight-bold">{{ sprint.name }}</h3>
               </div>
-              <v-chip size="x-small" :color="sprint.isActive ? 'success' : undefined">
-                {{ sprint.isActive ? "ACTIVE" : "COMPLETED" }}
+              <v-chip size="x-small" :color="isSprintActive(sprint) ? 'success' : undefined">
+                {{ isSprintActive(sprint) ? "ACTIVE" : "NOT ACTIVE" }}
               </v-chip>
             </div>
             <p class="text-caption text-medium-emphasis mb-0 mt-1">

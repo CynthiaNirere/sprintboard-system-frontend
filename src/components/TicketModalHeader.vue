@@ -1,7 +1,7 @@
 <script setup>
 import { defineProps } from "vue";
 
-const props = defineProps(['activeTicket']);
+const props = defineProps(['activeTicket', 'addTicket']);
 const emit = defineEmits(["modal-close"]);
 
 const ticketTypesChipDesign = [
@@ -37,8 +37,8 @@ function closeModal() {
 </script>
 
 <template>
-  <div>
-    <div class="d-flex">
+  <div class="modal-content">
+    <div v-if="!addTicket" class="d-flex">
       <div class="d-flex justify-start ga-2">
         <v-chip 
           v-if="props.activeTicket?.type"
@@ -82,11 +82,12 @@ function closeModal() {
       </div>
     </div>
     
-    <v-text-field
+    <v-text-field 
       v-model="props.activeTicket.title"
-      variant="flat"
       hide-details
-      style="font-weight: bold;"
+      :style="addTicket ? 'font-weight: normal; margin-bottom: 1rem;' : 'font-weight: bold;'"
+      :placeholder="addTicket ? 'Title of ticket' : ''"
+      :variant="addTicket ? 'underlined' : 'plain'"
      ></v-text-field>
   </div>
 </template>
@@ -98,5 +99,10 @@ function closeModal() {
   width: 30px;
   height: 30px;
   cursor: pointer;
+}
+
+.modal-content {
+  margin-bottom: 0.4rem;
+  padding: 1rem 1rem 0rem 1rem;
 }
 </style>

@@ -1,21 +1,50 @@
 <script setup>
-import { defineProps, onMounted, defineEmits, ref, toRaw} from "vue";
+import { defineProps, defineEmits, computed } from "vue";
 import TicketServices from "../services/TicketServices";
-import {onClickOutside} from '@vueuse/core'
-
-// const props = defineProps({
-//   isOpen: Boolean,
-//   ticket: Object,
-//   addTicket: Boolean,
-//   snackbar: Object,
-// });
 
 const emit = defineEmits(["modal-close", "ticket-count-changed"]);
-const props = defineProps(['ticket']);
+const props = defineProps(['ticket', 'addTicket', 'snackbar', 'boardStatuses', 'projectMembers']);
 
-const target = ref(null);
-onClickOutside(target, ()=>emit('modal-close'),{
-  ignore: ['.v-overlay-container']
+const ticketTypes = [
+  {
+    title: "Feature", value: "FEATURE"
+  },
+  {
+    title: "Enhancement", value: "ENHANCEMENT"
+  },
+  {
+    title: "Bug", value: "BUG"
+  }
+];
+
+const ticketPriorities = [
+  {
+    title: "Low", value: "LOW"
+  },
+  {
+    title: "Medium", value: "MEDIUM"
+  },
+  {
+    title: "High", value: "HIGH"
+  }
+];
+
+const assigneeOptions = computed(() => {
+  const formattedProjectMembers = props.projectMembers?.map(member => ({
+    label: `${member.firstName} ${member.lastName}`,
+    userId: member.id
+  })) || [];
+
+  return [...formattedProjectMembers];
+});
+
+const testerOptions = computed(() => {
+  const formattedProjectMembers = props.projectMembers?.map(member => ({
+    label: `${member.firstName} ${member.lastName}`,
+    userId: member.id
+  })) || [];
+
+  return [...formattedProjectMembers];
 });
 
 async function submit(){
@@ -25,36 +54,34 @@ async function submit(){
         props.snackbar.value = true;
         props.snackbar.color = "green";
         props.snackbar.text = `${props.ticket.status} updated successfully!`;
-        emit('modal-close');
 
+        emit('ticket-count-changed');
+        emit('modal-close');
       })
       .catch((error) => {
         console.log(error);
-        
         props.snackbar.value = true;
         props.snackbar.color = "error";
         props.snackbar.text = error.response?.data?.message || "Error creating Ticket";
       });
-      emit('ticket-count-changed');
-  }else{
+
+  } else {
     await TicketServices.updateTicket(props.ticket.id, props.ticket)
     .then((response) => {
       props.snackbar.value = true;
       props.snackbar.color = "green";
       props.snackbar.text = `${props.ticket.status} updated successfully!`;
-      emit('modal-close');
 
+      emit('modal-close');
     })
     .catch((error) => {
       console.log(error);
-      
       props.snackbar.value = true;
       props.snackbar.color = "error";
       props.snackbar.text = error.response?.data?.message || "Error updating ticket";
     });
   }
 }
-
 
 async function del(){
   await TicketServices.deleteTicket(props.ticket.id)
@@ -71,62 +98,137 @@ async function del(){
     });
   emit('ticket-count-changed');
   emit('modal-close');
-
 }
-
 </script>
 
 <template>
   <div class="modal-content">
     <v-form>
-      <v-textarea 
-        v-model="props.ticket.description"
-        label="description"
-        required
-      ></v-textarea >
-      <div class="d-flex ga-4">
-        <v-select
-          v-model="props.ticket.type"
-          label="type"
-          required
-          :items="['FEATURE', 'ENHANCEMENT', 'BUG']"
-        ></v-select>
-        <v-select
-          v-model="props.ticket.priority"
-          label="priority"
-          :items="['LOW', 'MEDIUM', 'HIGH']"
-          variant="outlined"
-          required
-        ></v-select>
-        <v-select
-          v-model="props.ticket.storyPoints"
-          label="story points"
-          :items="[0, 1, 2, 3, 5, 8, 13, 21, 34, 55]"
-          required
-        ></v-select>
+      <div class="d-flex justify-space-between ga-8">
+        <div style="width: 50%">
+          <v-select
+            v-model="props.ticket.statusId"
+            label="Status"
+            :items="props.boardStatuses"
+            item-title="name"
+            item-value="id"
+            variant="outlined"
+            required
+          ></v-select>
+        </div>
+        <div style="width: 50%">
+          <v-select
+            v-model="props.ticket.type"
+            label="Type"
+            :items="ticketTypes"
+            item-title="title"
+            item-value="value"
+            variant="outlined"
+            required
+          ></v-select>
+        </div>
       </div>
+
+      <div class="d-flex justify-space-between ga-8 mt-2">
+        <div style="width: 50%">
+          <v-select
+            v-model="props.ticket.priority"
+            label="Priority"
+            :items="ticketPriorities"
+            item-title="title"
+            item-value="value"
+            variant="outlined"
+            required
+          ></v-select>
+        </div>
+        <div style="width: 50%">
+          <v-select
+            v-model="props.ticket.storyPoints"
+            label="Story Points"
+            :items="[0, 1, 2, 3, 5, 8, 13, 21, 34, 55]"
+            variant="outlined"
+            required
+          ></v-select>
+        </div>        
+      </div>
+      
+      <div class="d-flex justify-space-between ga-8 mt-2">
+        <div style="width: 50%">
+          <v-select
+            v-model="props.ticket.assigneeId"
+            label="Assignee"
+            :items="assigneeOptions"
+            item-title="label"
+            item-value="userId"
+            variant="outlined"
+            clearable
+          ></v-select>
+        </div>
+        <div style="width: 50%">
+          <v-select
+            v-model="props.ticket.testerId"
+            label="Tester"
+            :items="testerOptions"
+            item-title="label"
+            item-value="userId"
+            variant="outlined"
+            clearable
+          ></v-select>
+        </div>        
+      </div>
+
       <v-text-field
         v-model="props.ticket.githubBranchName"
-        label="github branch name"
+        label="GitHub Branch Name"
       ></v-text-field>
+
       <div class="d-flex ga-4">
         <v-text-field
           v-model="props.ticket.githubPrURL"
-          label="github PrURL"
+          label="GitHub PrURL"
           class="w-75"
         ></v-text-field>
         <v-text-field
           v-model="props.ticket.githubIssueNumber"
-          label="github issue number"
+          label="GitHub Issue Number"
           type="number"
         ></v-text-field>
       </div>
+
+      <v-textarea 
+        v-model="props.ticket.description"
+        label="Description"
+        variant="outlined"
+        required
+      ></v-textarea >
+
+      <slot name="footer">
+        <div class="d-flex">
+          <v-btn
+            v-if="addTicket"
+            class="d-block ma-auto"
+            color="primary"
+            @click.stop="emit('modal-close')"
+          >
+            Cancel
+          </v-btn>
+          <v-btn
+            v-else
+            class="d-block ma-auto"
+            color="primary"
+            @click.stop="del()"
+          >
+            Delete  
+          </v-btn>
+          <v-btn class="d-block ma-auto" @click.stop="submit()">Submit</v-btn>
+        </div>
+      </slot>
     </v-form>
   </div>
 </template>
 
 <style scoped>
 .modal-content {
-  padding: 1rem;
+  padding: 1.4rem;
 }
 </style>

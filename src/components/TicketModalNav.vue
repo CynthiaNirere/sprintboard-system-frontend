@@ -6,7 +6,9 @@ import TicketModalComments from "./TicketModalComments.vue";
 import TicketModalAttachments from "./TicketModalAttachments.vue";
 import TicketModalHistory from "./TicketModalHistory.vue";
 
-const props = defineProps(['activeTicket']);
+const props = defineProps(['activeTicket', 'addTicket', 'snackbar', 'boardStatuses', 'projectMembers']);
+const emit = defineEmits(["modal-close", "ticket-count-changed"]);
+
 const tab = shallowRef('details');
 const tabs = [
   {
@@ -51,13 +53,22 @@ const tabs = [
         :text="item.text"
         :value="item.value"
         class="text-none ga-2"
+        :ripple="false"
       ></v-tab>
     </template>
 
     <template v-slot:item="{ item }">
       <v-tabs-window-item :value="item.value">
-        <component :is="item.value" :ticket="props.activeTicket"></component>
-
+        <component 
+          :is="item.value" 
+          :ticket="props.activeTicket" 
+          :addTicket="props.addTicket"
+          :snackbar="props.snackbar"
+          :boardStatuses="props.boardStatuses"
+          :projectMembers="props.projectMembers"
+          @modal-close="emit('modal-close')"
+          @ticket-count-changed="emit('ticket-count-changed')"
+        ></component>
       </v-tabs-window-item>
     </template>
   </v-tabs>
@@ -67,5 +78,6 @@ const tabs = [
 .nav-borders {
   border-top: 1px solid #E6E6E1;
   border-bottom: 1px solid #E6E6E1;
+  padding: 0 1rem;
 }
 </style>

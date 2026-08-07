@@ -114,22 +114,10 @@ function openModal(ticket, isAdd) {
 }
 
 function addToBacklog() {
-  // defaults to the project's first board status by columnOrder — TicketModal's
-  // own form has no status field, so this has to be pre-filled, same as Board.vue does
-  const statuses = [...(props.activeProject.projectBoardStatuses || [])].sort(
-    (a, b) => a.columnOrder - b.columnOrder
-  );
-  if (statuses.length === 0) {
-    snackbar.value = {
-      value: true,
-      color: "error",
-      text: "This project has no board statuses set up yet — add one before creating tickets.",
-    };
-    return;
-  }
   const newTicket = {
     projectId: props.activeProject.id,
-    statusId: statuses[0].id,
+    statusId: null,
+    sprintId: null
   };
   openModal(newTicket, true);
 }

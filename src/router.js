@@ -40,6 +40,11 @@ const router = createRouter({
           component: () => import("./views/TeamManagement.vue"),
         },
         {
+          path: "github-integrations",
+          name: "adminGithub",
+          component: () => import("./views/GithubIntegrations.vue"),
+        },
+        {
           path: "projects",
           name: "adminProjects",
           component: () => import("./views/ProjectsView.vue"),

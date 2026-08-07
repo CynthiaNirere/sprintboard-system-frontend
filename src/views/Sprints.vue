@@ -250,20 +250,22 @@ async function deleteSprint() {
     });
 }
 function parseLocalDate(dateString) {
-  const dateOnly = dateString.split("T")[0]; // "2026-08-03"
-  const [year, month, day] = dateOnly.split("-");
+  const dateOnly = dateString?.split("T")[0]; // "2026-08-03"
+  if(dateOnly){ 
+    const [year, month, day] = dateOnly?.split("-");
 
-  return new Date(
-    Number(year),
-    Number(month) - 1,
-    Number(day)
-  );
+    return new Date(
+      Number(year),
+      Number(month) - 1,
+      Number(day)
+    );
+  }
 }
 
 function displayDate(dateString) {
   const date = parseLocalDate(dateString);
 
-  return date.toLocaleDateString("en-US", {
+  return date?.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
   });

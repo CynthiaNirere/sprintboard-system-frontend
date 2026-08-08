@@ -132,6 +132,7 @@ function addTicket(status){
     statusId: status.id,
     projectId: props.activeProject.id,
     sprintId: currentSprint.value,
+    repoId: null,
   };
   openModal(newTicket, true);
 }

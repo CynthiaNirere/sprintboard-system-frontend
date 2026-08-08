@@ -160,8 +160,7 @@ function showError(error) {
                     autofocus
                     />
                 </div>
-                <div class="d-flex align-center">
-                    <v-text-field
+                <v-text-field
                         v-model="newRepo.url"
                         placeholder="repo url"
                         :rules="nameRules"
@@ -169,13 +168,21 @@ function showError(error) {
                         density="comfortable"
                         autofocus
                     />
-                    <v-btn
-                      variant="outlined"
-                      class=""
-                      style=""
-                      @click.stop="createRepo()"
-                    >Create</v-btn>
-                </div>
+                <p>Command to generate secret: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))" </p>
+                <v-text-field
+                    v-model="newRepo.webhookSecret"
+                    placeholder="repo webhook secret"
+                    :rules="nameRules"
+                    variant="outlined"
+                    density="comfortable"
+                    autofocus
+                />
+                <v-btn
+                  variant="outlined"
+                  class=""
+                  style=""
+                  @click.stop="createRepo()"
+                >Create</v-btn>
               </v-form>
           </v-form>
         </v-card>

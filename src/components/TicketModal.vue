@@ -1,6 +1,7 @@
 <script setup>
-import { defineProps, onMounted, defineEmits, ref, toRaw} from "vue";
+import { defineProps, onMounted, defineEmits, ref, toRaw, watch} from "vue";
 import TicketServices from "../services/TicketServices";
+import GithubRepositoryServices from "../services/GithubRepositoryServices";
 import {onClickOutside} from '@vueuse/core'
 
 const props = defineProps({
@@ -8,14 +9,38 @@ const props = defineProps({
   ticket: Object,
   addTicket: Boolean,
   snackbar: Object,
+  activeProject: Object
 });
 
 const emit = defineEmits(["modal-close", "ticket-count-changed"]);
+const repos = ref([]);
+
+watch(() => props.activeProject, async (newProject) => {
+  if (newProject) {
+    await getRepos();
+  }
+}, { immediate: true });
 
 const target = ref(null);
 onClickOutside(target, ()=>emit('modal-close'),{
   ignore: ['.v-overlay-container']
 });
+
+async function getRepos(){
+  console.log(props.activeProject);
+  await GithubRepositoryServices.getReposByProject(props.activeProject.id)
+      .then((response) => {
+        repos.value = response.data;
+
+      })
+      .catch((error) => {
+        console.log(error);
+        
+        props.snackbar.value = true;
+        props.snackbar.color = "error";
+        props.snackbar.text = error.response?.data?.message || "Error getting repos for project";
+      });
+}
 
 async function submit(){
   if(props.addTicket){
@@ -114,21 +139,26 @@ async function del(){
               required
             ></v-select>
           </div>
+          <v-select
+              v-model="ticket.repoId"
+              label="repo"
+              :items="repos"
+              item-title="name"
+              item-value="id"
+              required
+            ></v-select>
           <v-text-field
             v-model="ticket.githubBranchName"
+            :disabled="ticket.githubBranchCreatedAt"
             label="github branch name"
           ></v-text-field>
           <div class="d-flex ga-4">
-
             <v-text-field
               v-model="ticket.githubPrURL"
               label="github PrURL"
               class="w-75"
-            ></v-text-field>
-            <v-text-field
-              v-model="ticket.githubIssueNumber"
-              label="github issue number"
-              type="number"
+              :disabled="true"
+               :readonly="true"
             ></v-text-field>
           </div>
         </div>

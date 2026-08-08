@@ -1,6 +1,7 @@
 name: AWS DEPLOY TO STAGING
 
 on:
+  workflow_dispatch:
   pull_request:
     types: [closed]
     branches:

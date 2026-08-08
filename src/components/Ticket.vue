@@ -1,9 +1,8 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import TicketModal from './TicketModal.vue';
 import UserServices from '../services/UserServices.js'
 const props = defineProps(['ticket']);
-const ticket = ref(props.ticket);
 const owner = ref(null);
 const user = ref(null);
 
@@ -41,50 +40,65 @@ onMounted(async () => {
 });
 
 async function getOwner() {
-  if (!ticket.value.assigneeId) {
+  if (!props.ticket.assigneeId) {
     return;
   }
 
-  await UserServices.getUserById(ticket.value.assigneeId)
+  await UserServices.getUserById(props.ticket.assigneeId)
     .then((response) => {
       owner.value = response.data;
-      console.log("Owner data", owner.value);
     })
     .catch((error) => {
       console.log(error);
-      
     });
 }
 
+watch(() => props.ticket.assigneeId, async (newAssignee) => {
+  if (newAssignee) {
+    await getOwner();
+  }
+  else {
+    owner.value = null;
+  }
+});
 </script>
 
 <template>
-  <v-card class="ma-2" @click="openModal">
+  <v-card class="ma-2" style="border-top: 2px solid #196CA2" @click="openModal">
     
-    <div class="d-flex justify-space-between align-center px-4">
-      <v-card-text class="pl-0">
-        {{ ticket.title }}
-      </v-card-text>
-      <span v-if="ticket.storyPoints">{{ ticket.storyPoints }}</span>
-    </div>
+    <v-card-text style="font-weight: 500; font-size: 14px;">
+      {{ props.ticket.title }}
+    </v-card-text>
+
    <!-- <v-card-title>
         {{ticket.id}} 
     </v-card-title>  un comment this after github interactions work to view ticket id-->
-    <div class="d-flex justify-space-between pb-3 px-3 mt-2">
-      <v-chip 
-        v-if="ticket.priority"
-        :style="getTicketPriorityDesign(ticket.priority)"
-        class="font-weight-bold px-3"
-        size="small"
-        variant="flat"
-        >
-        {{ formatChipText(ticket.priority) }}
-      </v-chip> 
+    <div class="d-flex justify-space-between pb-3 px-3">
+      <div class="d-flex justify-start ga-2" style="max-width: 80%; flex-wrap: wrap;">
+        <v-chip 
+          v-if="props.ticket.priority"
+          :style="getTicketPriorityDesign(props.ticket.priority)"
+          class="font-weight-bold px-3"
+          size="small"
+          variant="flat"
+          >
+          {{ formatChipText(props.ticket.priority) }}
+        </v-chip> 
+        <v-chip 
+          v-if="props.ticket.storyPoints"
+          :style="'background-color: #EFEFEC; color: #4B5469'"
+          class="font-weight-bold px-3"
+          size="small"
+          variant="flat"
+          >
+          {{ props.ticket.storyPoints }} pts
+        </v-chip> 
+      </div>
 
       <div v-if="owner">
         <v-avatar class="mx-auto text-center avatar-outline" color="#1740E3" size="x-small">
-          <span class="white--text font-weight-bold">{{
-            `${owner.firstName.charAt(0)}${owner.lastName.charAt(0)}`
+          <span style="font-size: 12px;">{{
+            `${owner.firstName?.charAt(0)}${owner.lastName?.charAt(0)}`
           }}</span>
         </v-avatar>
       </div>

@@ -39,7 +39,7 @@ function closeModal() {
 <template>
   <div class="modal-content">
     <div v-if="!addTicket" class="d-flex">
-      <div class="d-flex justify-start ga-2">
+      <div class="d-flex justify-start ga-3">
         <v-chip 
           v-if="props.activeTicket?.type"
           :style="getTicketTypeDesign(props.activeTicket.type)"

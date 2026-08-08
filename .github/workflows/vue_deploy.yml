@@ -11,21 +11,54 @@ jobs:
   aws-deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           ref: dev
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - run: npm install
-      - run: npm run build
 
+      # The source tree is shipped, not dist/: httpd.conf has to reach the box
+      # for the /sprintboardapi ProxyPass to exist at all. The multi-stage
+      # dockerfile runs the Vue build on the server.
       - name: Deploy to Server
         uses: easingthemes/ssh-deploy@v2.1.1
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
-          ARGS: "-rltgoDzvO --delete"
-          SOURCE: "dist/"
+          ARGS: "-rltgoDzvO --delete --exclude=node_modules --exclude=.git --exclude=dist"
+          SOURCE: "./"
           REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
           REMOTE_USER: ubuntu
-          TARGET: "/var/www/sprintboard-frontend"
+          TARGET: "nodeapps/sprintboard-system-frontend"
+
+      - name: Bring up the stack
+        uses: JimCronqvist/action-ssh@master
+        with:
+          hosts: "ubuntu@${{ secrets.REMOTE_HOST }}"
+          privateKey: ${{ secrets.SERVER_SSH_KEY }}
+          debug: false
+          command: |
+            set -e
+            cd nodeapps/sprintboard-system-frontend
+
+            command -v docker >/dev/null || curl -fsSL https://get.docker.com | sudo sh
+
+            # Declared external in docker-compose.yaml and normally created by
+            # the backend stack. Created here too so frontend-first deploys do
+            # not fail — there is no SSH access to fix that by hand.
+            sudo docker network create jira_backend_network || true
+
+            COMPOSE="docker compose -f docker-compose.yaml -f docker-compose.prod.yaml"
+            sudo $COMPOSE up -d --build
+
+      # With no SSH access, the Actions log is the only console onto the box.
+      - name: Diagnostics
+        if: always()
+        uses: JimCronqvist/action-ssh@master
+        with:
+          hosts: "ubuntu@${{ secrets.REMOTE_HOST }}"
+          privateKey: ${{ secrets.SERVER_SSH_KEY }}
+          debug: false
+          command: |
+            cd nodeapps/sprintboard-system-frontend
+            COMPOSE="docker compose -f docker-compose.yaml -f docker-compose.prod.yaml"
+            sudo $COMPOSE ps
+            echo "----- frontend logs -----"
+            sudo $COMPOSE logs --tail=50

@@ -1,0 +1,6 @@
+# AWS staging only. Applied explicitly:
+#   docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d --build
+services:
+  frontend:
+    ports:
+      - "80:80"

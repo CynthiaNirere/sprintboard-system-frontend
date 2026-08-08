@@ -16,6 +16,7 @@ const isAdmin = user?.globalRole === "ADMIN";
 const isProjectAdmin = ref(false);
 
 const props = defineProps(['activeProject']);
+const emit = defineEmits(['sprint-added', 'sprint-updated', 'sprint-deleted']);
 
 const sprintCompletion = ref([]);
 
@@ -127,6 +128,7 @@ async function submitModal() {
         snackbar.value.value = true;
         snackbar.value.color = "green";
         snackbar.value.text = `${currentSprint.value.name} updated successfully!`;
+        emit('sprint-updated');
         closeModal();
         })
         .catch((error) => {
@@ -156,6 +158,7 @@ async function submitModal() {
           snackbar.value.color = "success";
           snackbar.value.text = "Sprint created successfully!";
           getSprints();
+          emit('sprint-added');
         })
         .catch((error) => {
           snackbar.value.value = true;
@@ -177,6 +180,7 @@ async function submitModal() {
           snackbar.value.color = "success";
           snackbar.value.text = "Recurring sprint created successfully!";
           getSprints();
+          emit('sprint-added');
         })
         .catch((error) => {
           snackbar.value.value = true;
@@ -238,6 +242,7 @@ async function deleteSprint() {
       snackbar.value.text = `"${sprintToDelete.value.name}" was deleted.`;
       sprintToDelete.value = null;
       getSprints();
+      emit('sprint-deleted');
     })
     .catch((error) => {
       snackbar.value.value = true;

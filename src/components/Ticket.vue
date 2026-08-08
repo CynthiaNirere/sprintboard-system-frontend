@@ -73,7 +73,7 @@ watch(() => props.ticket.assigneeId, async (newAssignee) => {
    <!-- <v-card-title>
         {{ticket.id}} 
     </v-card-title>  un comment this after github interactions work to view ticket id-->
-    <div class="d-flex justify-space-between pb-3 px-3">
+    <div class="d-flex justify-space-between py-3 px-3">
       <div class="d-flex justify-start ga-2" style="max-width: 80%; flex-wrap: wrap;">
         <v-chip 
           v-if="props.ticket.priority"

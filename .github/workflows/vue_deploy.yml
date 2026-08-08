@@ -13,7 +13,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: dev
+          # A manual dispatch deploys the ref you dispatched, so a feature
+          # branch can be tested on staging without merging first. The
+          # PR-close trigger always deploys dev, the integration branch.
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.ref_name || 'dev' }}
 
       # The source tree is shipped, not dist/: httpd.conf has to reach the box
       # for the /sprintboardapi ProxyPass to exist at all. The multi-stage
@@ -38,7 +41,16 @@ jobs:
             set -e
             cd nodeapps/sprintboard-system-frontend
 
-            command -v docker >/dev/null || curl -fsSL https://get.docker.com | sudo sh
+            # get.docker.com may not publish a repo for Ubuntu 26.04's codename
+            # yet, so prefer distro packages. Normally the backend deploy has
+            # already installed Docker; this is the standalone path.
+            if ! (command -v docker >/dev/null && docker compose version >/dev/null 2>&1); then
+              sudo apt-get update
+              sudo apt-get install -y docker.io docker-compose-v2 \
+                || curl -fsSL https://get.docker.com | sudo sh
+              sudo systemctl enable --now docker
+            fi
+            docker --version
 
             # Declared external in docker-compose.yaml and normally created by
             # the backend stack. Created here too so frontend-first deploys do

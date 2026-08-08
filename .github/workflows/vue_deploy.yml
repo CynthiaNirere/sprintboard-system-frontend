@@ -58,7 +58,28 @@ jobs:
             sudo docker network create jira_backend_network || true
 
             COMPOSE="docker compose -f docker-compose.yaml -f docker-compose.prod.yaml"
+
+            # This image is built via a multi-stage dockerfile: the node:20-alpine
+            # build stage pulls node_modules and runs vite, and that whole stage
+            # is left dangling after every single run. Prune both sides of the
+            # build or the box accumulates a full build stage per deploy.
+            echo "----- docker usage before -----"
+            sudo docker system df
+            sudo docker builder prune -af || true
+            sudo docker image prune -af || true
+            sudo docker container prune -f || true
+            df -h /
+
             sudo $COMPOSE up -d --build
+
+            # NEVER add --volumes here: the backend stack's database volume
+            # lives on this same daemon.
+            sudo docker builder prune -af
+            sudo docker image prune -af
+            sudo docker container prune -f
+            echo "----- docker usage after -----"
+            sudo docker system df
+            df -h /
 
       # With no SSH access, the Actions log is the only console onto the box.
       - name: Diagnostics

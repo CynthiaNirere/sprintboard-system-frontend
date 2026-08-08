@@ -1,13 +1,15 @@
 <script setup>
-import { shallowRef } from "vue";
+import { shallowRef, ref, onMounted } from "vue";
 import TicketModalDetails from "./TicketModalDetails.vue";
 import TicketModalTests from "./TicketModalTests.vue";
 import TicketModalComments from "./TicketModalComments.vue";
 import TicketModalAttachments from "./TicketModalAttachments.vue";
 import TicketModalHistory from "./TicketModalHistory.vue";
+import TestServices from "../services/TestServices.js";
 
 const props = defineProps(['activeTicket', 'addTicket', 'snackbar', 'boardStatuses', 'projectMembers']);
-const emit = defineEmits(["modal-close", "ticket-count-changed"]);
+const emit = defineEmits(["modal-close", "ticket-count-changed", "test-count-changed"]);
+const testCount = ref(0);
 
 const tab = shallowRef('details');
 const tabs = [
@@ -37,6 +39,11 @@ const tabs = [
     value: TicketModalHistory,
   },
 ]
+
+onMounted(async () => {
+  const getTestsForTicketResponse = await TestServices.getTestsForTicket(props.activeTicket?.id);
+  testCount.value = getTestsForTicketResponse.data.length;
+});
 </script>
 
 <template>
@@ -50,11 +57,17 @@ const tabs = [
     <template v-slot:tab="{ item }">
       <v-tab
         :prepend-icon="item.icon"
-        :text="item.text"
         :value="item.value"
-        class="text-none ga-2"
+        class="text-none ga-1"
         :ripple="false"
-      ></v-tab>
+      >
+        {{ item.text }}
+
+        <div v-if="item.text === 'Tests'" class="d-flex justify-center align-center test-number-background">
+          {{ testCount }}
+        </div>
+
+      </v-tab>
     </template>
 
     <template v-slot:item="{ item }">
@@ -68,6 +81,7 @@ const tabs = [
           :projectMembers="props.projectMembers"
           @modal-close="emit('modal-close')"
           @ticket-count-changed="emit('ticket-count-changed')"
+          @test-count-changed="testCount = $event"
         ></component>
       </v-tabs-window-item>
     </template>
@@ -79,5 +93,15 @@ const tabs = [
   border-top: 1px solid #E6E6E1;
   border-bottom: 1px solid #E6E6E1;
   padding: 0 1rem;
+}
+
+.test-number-background {
+  background-color: #EFEFEC;
+  color: #80879A;
+  font-weight: bold;
+  border-radius: 50%;
+  width: 25px;
+  height: 25px;
+  margin-left: 0.6rem;
 }
 </style>

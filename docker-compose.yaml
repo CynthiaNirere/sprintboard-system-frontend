@@ -6,6 +6,13 @@ services:
   frontend:
     build: .
     restart: unless-stopped
+    # Docker's json-file driver is UNBOUNDED by default; Apache access logs
+    # would otherwise grow until the disk fills.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     # No ports here: local publishes 8080 via docker-compose.override.yaml,
     # staging publishes 80 via docker-compose.prod.yaml.
     networks:

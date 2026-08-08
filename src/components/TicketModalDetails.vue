@@ -53,7 +53,7 @@ async function submit(){
       .then((response) => {
         props.snackbar.value = true;
         props.snackbar.color = "green";
-        props.snackbar.text = `${props.ticket.status} updated successfully!`;
+        props.snackbar.text = `${props.ticket.title} updated successfully!`;
 
         emit('ticket-count-changed');
         emit('modal-close');
@@ -70,8 +70,9 @@ async function submit(){
     .then((response) => {
       props.snackbar.value = true;
       props.snackbar.color = "green";
-      props.snackbar.text = `${props.ticket.status} updated successfully!`;
+      props.snackbar.text = `${props.ticket.title} updated successfully!`;
 
+      emit('ticket-count-changed');
       emit('modal-close');
     })
     .catch((error) => {

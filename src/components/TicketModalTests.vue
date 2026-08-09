@@ -81,6 +81,7 @@ async function addNewTest() {
       props.snackbar.text = error.response?.data?.message || "Error adding test.";
     });
 
+  closeAddTest();
   await getTests();
 }
 
@@ -123,7 +124,7 @@ async function deleteTest(testId) {
     .then((response) => {
       props.snackbar.value = true;
       props.snackbar.color = "green";
-      props.snackbar.text = `Test ${test.title} deleted successfully!`;
+      props.snackbar.text = `Test deleted successfully!`;
     })
     .catch((error) => {
       console.log(error);

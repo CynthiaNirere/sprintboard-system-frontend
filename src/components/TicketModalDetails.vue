@@ -3,7 +3,7 @@ import { defineProps, defineEmits, computed } from "vue";
 import TicketServices from "../services/TicketServices";
 
 const emit = defineEmits(["modal-close", "ticket-count-changed"]);
-const props = defineProps(['ticket', 'addTicket', 'snackbar', 'boardStatuses', 'projectMembers']);
+const props = defineProps(['ticket', 'addTicket', 'snackbar', 'boardStatuses', 'projectMembers', 'repos']);
 
 const ticketTypes = [
   {
@@ -166,7 +166,7 @@ async function del(){
           <v-select
             v-model="props.ticket.repoId"
             label="Repository"
-            :items="repos"
+            :items="props.repos"
             item-title="name"
             item-value="id"
             variant="outlined"

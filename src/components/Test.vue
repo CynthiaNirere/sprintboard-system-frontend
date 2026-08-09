@@ -15,6 +15,7 @@ const markPassed = ref(false);
 const editedTest = ref(false);
 const testHistoryLogs = ref([]);
 const showHistory = ref(false);
+const testHistoryCount = ref(0);
 
 const ownerOptions = computed(() => {
   const formattedProjectMembers = props.projectMembers?.map(member => ({
@@ -106,7 +107,7 @@ function resetToPending() {
 async function showTestHistory() {
   showHistory.value = !showHistory.value;
 
-  if (showHistory.value && testHistoryLogs.value.length < 1) {
+  if (showHistory.value && testHistoryLogs.value.length !== testHistoryCount.value) {
     await TestHistoryServices.getTestHistory(props.test.id)
       .then((response) => {
         testHistoryLogs.value = response.data;
@@ -165,6 +166,16 @@ async function getUsers() {
     });
 }
 
+async function getTestHistoryCount() {
+  await TestHistoryServices.getTestHistory(props.test.id)
+    .then((response) => {
+      testHistoryCount.value = response.data.length;
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+}
+
 watch(() => props.test.ownerId, async (newOwner) => {
   if (newOwner) {
     await getOwner();
@@ -175,6 +186,8 @@ watch(() => props.test.ownerId, async (newOwner) => {
 });
 
 watch(() => props.test, async () => {
+  await getTestHistoryCount();
+
   if (showHistory.value) {
     await TestHistoryServices.getTestHistory(props.test.id)
       .then((response) => {
@@ -189,6 +202,7 @@ watch(() => props.test, async () => {
 onMounted(async () => {
   await getOwner();
   await getUsers();
+  await getTestHistoryCount();
 });
 </script>
 
@@ -262,7 +276,7 @@ onMounted(async () => {
           rounded="lg"
           @click="showTestHistory()"
         >
-          {{ showHistory ? 'Hide' : 'History' }} {{ testHistoryLogs.length > 0 ? `(${testHistoryLogs.length})` : '' }}
+          {{ showHistory ? 'Hide' : 'History' }} {{ testHistoryCount > 0 ? `(${testHistoryCount})` : '' }}
         </v-btn>
 
         <div v-if="props.test.status !== 'PENDING'">

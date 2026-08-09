@@ -207,6 +207,7 @@ async function del(){
               :snackbar="props.snackbar"
               :boardStatuses="props.boardStatuses"
               :projectMembers="props.projectMembers"
+              :repos="repos"
               @modal-close="emit('modal-close')"
               @ticket-count-changed="emit('ticket-count-changed')"
             />

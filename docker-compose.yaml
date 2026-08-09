@@ -1,13 +1,19 @@
-version: '3.8'
-
 networks:
   jira_backend_network:
-    external: true # Tells Docker the network already exists
+    external: true # Created by the backend stack — bring that up first
 
 services:
   frontend:
     build: .
-    ports:
-      - "8080:80"
+    restart: unless-stopped
+    # Docker's json-file driver is UNBOUNDED by default; Apache access logs
+    # would otherwise grow until the disk fills.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # No ports here: local publishes 8080 via docker-compose.override.yaml,
+    # staging publishes 80 via docker-compose.prod.yaml.
     networks:
       - jira_backend_network

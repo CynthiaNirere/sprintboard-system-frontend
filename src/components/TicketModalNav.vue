@@ -7,7 +7,7 @@ import TicketModalAttachments from "./TicketModalAttachments.vue";
 import TicketModalHistory from "./TicketModalHistory.vue";
 import TestServices from "../services/TestServices.js";
 
-const props = defineProps(['activeTicket', 'addTicket', 'snackbar', 'boardStatuses', 'projectMembers']);
+const props = defineProps(['activeTicket', 'addTicket', 'snackbar', 'boardStatuses', 'projectMembers', 'repos']);
 const emit = defineEmits(["modal-close", "ticket-count-changed", "test-count-changed"]);
 const testCount = ref(0);
 
@@ -79,6 +79,7 @@ onMounted(async () => {
           :snackbar="props.snackbar"
           :boardStatuses="props.boardStatuses"
           :projectMembers="props.projectMembers"
+          :repos="props.repos"
           @modal-close="emit('modal-close')"
           @ticket-count-changed="emit('ticket-count-changed')"
           @test-count-changed="testCount = $event"

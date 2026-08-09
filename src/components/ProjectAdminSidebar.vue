@@ -116,7 +116,7 @@ function formatRole(role) {
           </div>
         </v-list-item>
         
-        <v-list-item class="mx-3 rounded-lg" active-class="active-tab">
+        <v-list-item :to="{ name: 'projectAdminGithub' }" class="mx-3 rounded-lg" active-class="active-tab">
           <div class="d-flex ga-3 align-center">
             <v-icon>mdi-github</v-icon>
             <span>GitHub Integrations</span>

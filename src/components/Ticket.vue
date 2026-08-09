@@ -19,11 +19,22 @@ const submitHandler = ()=>{
   //here you do whatever
 }
 
+const ticketTypesChipDesign = [
+  { value: "FEATURE", bgColor: "#EAF0FE", textColor: "#1E3E9E" },
+  { value: "ENHANCEMENT", bgColor: "#F1EBFC", textColor: "#7C3AED" },
+  { value: "BUG", bgColor: "#FBE7E5", textColor: "#C0362C" }
+]
+
 const ticketPriorityChipDesign = [
   { value: "HIGH", bgColor: "#FBE7E5", textColor: "#D1572C" },
   { value: "MEDIUM", bgColor: "#FBF1DC", textColor: "#B88612" },
   { value: "LOW", bgColor: "#EFEFEC", textColor: "#80879A" }
 ]
+
+function getTicketTypeDesign(type) {
+  const selectedType = ticketTypesChipDesign.find(typeValue => typeValue.value === type);
+  return { backgroundColor: selectedType.bgColor, color: selectedType.textColor };
+}
 
 function getTicketPriorityDesign(priority) {
   const selectedPriority = ticketPriorityChipDesign.find(priorityValue => priorityValue.value === priority);
@@ -76,12 +87,21 @@ watch(() => props.ticket.assigneeId, async (newAssignee) => {
     <div class="d-flex justify-space-between py-3 px-3">
       <div class="d-flex justify-start ga-2" style="max-width: 80%; flex-wrap: wrap;">
         <v-chip 
+          v-if="props.ticket.type"
+          :style="getTicketTypeDesign(props.ticket.type)"
+          class="font-weight-bold px-3"
+          size="small"
+          variant="flat"
+        >
+          {{ formatChipText(props.ticket.type) }}
+        </v-chip> 
+        <v-chip 
           v-if="props.ticket.priority"
           :style="getTicketPriorityDesign(props.ticket.priority)"
           class="font-weight-bold px-3"
           size="small"
           variant="flat"
-          >
+        >
           {{ formatChipText(props.ticket.priority) }}
         </v-chip> 
         <v-chip 
@@ -90,22 +110,40 @@ watch(() => props.ticket.assigneeId, async (newAssignee) => {
           class="font-weight-bold px-3"
           size="small"
           variant="flat"
-          >
+        >
           {{ props.ticket.storyPoints }} pts
         </v-chip> 
+
+        <v-chip
+          v-if="props.ticket.githubPrURL"
+          :style="'background-color: #EBF0FE; color: #24439D'"
+          class="font-weight-bold px-3"
+          size="small"
+          variant="flat"
+          prepend-icon="mdi-source-repository"
+        >
+          PR
+        </v-chip>
+
+        <v-chip
+          v-if="props.ticket.githubBranchName"
+          :style="'background-color: #E7F2F0; color: #389688'"
+          class="font-weight-bold px-3"
+          size="small"
+          variant="flat"
+          prepend-icon="mdi-source-branch"
+        >
+          Branch
+        </v-chip>
       </div>
 
-      <div v-if="owner">
+      <div v-if="owner" class="align-self-end">
         <v-avatar class="mx-auto text-center avatar-outline" color="#1740E3" size="x-small">
-          <span style="font-size: 12px;">{{
+          <span style="font-size: 10px;">{{
             `${owner.firstName?.charAt(0)}${owner.lastName?.charAt(0)}`
           }}</span>
         </v-avatar>
       </div>
-
-      <!-- <v-card-subtitle >
-        {{ owner?.email ?? "fake@example.com" }}
-      </v-card-subtitle> -->
     </div>
   </v-card>
 </template>

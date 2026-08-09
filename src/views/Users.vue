@@ -42,12 +42,18 @@ const actionsList = [
   "Sprint updated",
   "Sprint deleted",
   "GitHub repo linked",
+  "GitHub branch created",
+  "GitHub PR created",
+  "GitHub PR opened",
+  "GitHub PR merged",
+  "GitHub token updated",
+  "GitHub token cleared",
   "Board status updated",
   "Test status changed",
   "Attachment uploaded",
   "Attachment deleted",
   "Retro created",
-  "Retro item added"
+  "Retro item added",
 ];
 
 const actionValuesAndDesign = [
@@ -67,6 +73,12 @@ const actionValuesAndDesign = [
   { value: "Sprint updated", mdiIcon: 'mdi-information-outline', bgColor: "#EFEFEC", textColor: "#B28415" },
   { value: "Sprint deleted", mdiIcon: 'mdi-trash-can-outline', bgColor: "#EFEFEC", textColor: "#B5362C" },
   { value: "GitHub repo linked", mdiIcon: 'mdi-github', bgColor: "#EFEFEC", textColor: "#14171F" },
+  { value: "GitHub branch created", mdiIcon: 'mdi-source-branch', bgColor: "#EFEFEC", textColor: "#14171F" },
+  { value: "GitHub PR created", mdiIcon: 'mdi-source-pull', bgColor: "#EFEFEC", textColor: "#094074" },
+  { value: "GitHub PR opened", mdiIcon: 'mdi-source-pull', bgColor: "#EFEFEC", textColor: "#094074" },
+  { value: "GitHub PR merged", mdiIcon: 'mdi-source-merge', bgColor: "#EFEFEC", textColor: "#3D314A" },
+  { value: "GitHub token updated", mdiIcon: 'mdi-key-variant', bgColor: "#EFEFEC", textColor: "#C17817" },
+  { value: "GitHub token cleared", mdiIcon: 'mdi-key-remove', bgColor: "#EFEFEC", textColor: "#3F84E5" },
   { value: "Board status updated", mdiIcon: 'mdi-cog-outline', bgColor: "#EFEFEC", textColor: "#B28415" },
   { value: "Test status changed", mdiIcon: 'mdi-flask-empty-outline', bgColor: "#EFEFEC", textColor: "#7647EB" },
   { value: "Attachment uploaded", mdiIcon: 'mdi-tray-arrow-up', bgColor: "#EFEFEC", textColor: "#3058CB" },
@@ -291,18 +303,30 @@ function formatRole(role) {
 function getActionValueAndDesign(action) {
   const selectedAction = actionValuesAndDesign.find(actionValue => actionValue.value === action);
   
+  if (!selectedAction) {
+    return { backgroundColor: "#EFEFEC", color: "#3D8A60" };
+  }
+
   return { backgroundColor: selectedAction.bgColor, color: selectedAction.textColor };
 }
 
 function getMDIIcon(action) {
   const selectedAction = actionValuesAndDesign.find(actionValue => actionValue.value === action);
   
+  if (!selectedAction) {
+    return 'mdi-help-circle-outline';
+  }
+
   return selectedAction.mdiIcon;
 }
 
 function getMDIIconColor(action) {
   const selectedAction = actionValuesAndDesign.find(actionValue => actionValue.value === action);
   
+  if (!selectedAction) {
+    return '#3D8A60';
+  }
+
   return selectedAction.textColor;
 }
 

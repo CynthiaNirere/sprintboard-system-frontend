@@ -25,16 +25,16 @@ const githubStatuses = [
     title: "GitHub: None", value: "none"
   },
   {
-    title: "GitHub: Branch created", value: "branch_created"
+    title: "App: Create branch in GitHub", value: "create_branch"
+  },
+  {
+    title: "App: Create pr in GitHub", value: "create_pr"
   },
   {
     title: "GitHub: PR opened", value: "pr_opened"
   },
   {
     title: "GitHub: PR merged", value: "pr_merged"
-  },
-  {
-    title: "App: Create branch in GitHub", value: "create_branch"
   }
 ];
 

@@ -3,8 +3,10 @@ import { onMounted, defineProps, defineEmits, computed, ref } from "vue";
 import TicketServices from "../services/TicketServices";
 import TestServices from "../services/TestServices";
 import UserServices from "../services/UserServices";
+import TestHistoryServices from "../services/TestHistoryServices.js";
 import Test from "../components/Test.vue"
 
+const user = ref(null);
 const tests = ref([]);
 const props = defineProps(['ticket', 'test', 'snackbar', 'projectMembers']);
 const emit = defineEmits(["modal-close", 'test-count-changed']);
@@ -56,7 +58,7 @@ async function addNewTest() {
   newTest.value.ticketId = props.ticket.id;
 
   await TestServices.addTest(newTest.value)
-    .then((response) => {
+    .then(async (response) => {
       props.snackbar.value = true;
       props.snackbar.color = "green";
       props.snackbar.text = `Test ${newTest.value.title} added successfully!`;
@@ -64,6 +66,13 @@ async function addNewTest() {
       newTest.value.title = "";
       newTest.value.description = "";
       newTest.value.ownerId = null;
+
+      const createdTest = response.data;
+      const historyData = {
+        userId: user.value.id,
+        message: "Created test."
+      }
+      await TestHistoryServices.addTestHistory(createdTest.id, historyData);
     })
     .catch((error) => {
       console.log(error);
@@ -72,18 +81,32 @@ async function addNewTest() {
       props.snackbar.text = error.response?.data?.message || "Error adding test.";
     });
 
-
-  // TODO: Create a new TestHistory entry to save the user's findings to the database
-
   await getTests();
 }
 
 async function updateTest(test) {
   await TestServices.updateTest(test.id, test)
-    .then((response) => {
+    .then(async (response) => {
       props.snackbar.value = true;
       props.snackbar.color = "green";
       props.snackbar.text = `Test ${test.title} updated successfully!`;
+
+      let logMessage = "Updated test details.";
+      if (test.status === "PENDING") {
+        logMessage = "Test status reset to 'Pending'.";
+      }
+      if (test.status === "FAILED") {
+        logMessage = `Test status marked as 'Failed'. Findings: ${test.findings || 'None provided.'}`;
+      }
+      if (test.status === "PASSED") {
+        logMessage = `Test status marked as 'Passed'. Findings: ${test.findings || 'None provided.'}`;
+      }
+
+      const historyData = {
+        userId: user.value.id,
+        message: logMessage
+      }
+      await TestHistoryServices.addTestHistory(test.id, historyData);
     })
     .catch((error) => {
       console.log(error);
@@ -91,8 +114,6 @@ async function updateTest(test) {
       props.snackbar.color = "error";
       props.snackbar.text = error.response?.data?.message || "Error updating test.";
     });
-
-    // TODO: Create a new TestHistory entry to save the user's findings to the database
 
     await getTests();
 }
@@ -110,8 +131,6 @@ async function deleteTest(testId) {
       props.snackbar.color = "error";
       props.snackbar.text = error.response?.data?.message || "Error deleting test.";
     });
-
-    // TODO: Create a new TestHistory entry to save the user's findings to the database
 
     await getTests();
 }
@@ -135,6 +154,7 @@ function formatStatus(status) {
 }
 
 onMounted(async () => {
+  user.value = JSON.parse(localStorage.getItem("user"));
   await getTests();
 });
 </script>
@@ -150,7 +170,7 @@ onMounted(async () => {
         :key="test.id" 
         :test="test" 
         :projectMembers="props.projectMembers"
-        @edit-test="editTest()"
+        :snackbar="props.snackbar"
         @update-test="updateTest"
         @delete-test="deleteTest"
         class="mb-4"

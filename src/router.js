@@ -132,6 +132,11 @@ const router = createRouter({
           component: () => import("./views/TeamManagement.vue"),
         },
         {
+          path: "github-integrations",
+          name: "projectAdminGithub",
+          component: () => import("./views/GithubIntegrations.vue"),
+        },
+        {
           path: "board-statuses",
           name: "projectAdminBoardStatuses",
           component: () => import("./views/BoardStatuses.vue"),

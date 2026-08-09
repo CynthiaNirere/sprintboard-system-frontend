@@ -123,7 +123,7 @@ function formatRole(role) {
           </div>
         </v-list-item>
         
-        <v-list-item :to="{ name: projectAdminBoardStatuses }" class="mx-3 rounded-lg" active-class="active-tab">
+        <v-list-item :to="{ name: 'projectAdminBoardStatuses' }" class="mx-3 rounded-lg" active-class="active-tab">
           <div class="d-flex ga-3 align-center">
             <v-icon>mdi-cog-outline</v-icon>
             <span>Board Statuses</span>

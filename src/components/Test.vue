@@ -184,7 +184,7 @@ watch(() => props.test, async () => {
         console.log(error);   
       });
   }
-})
+});
 
 onMounted(async () => {
   await getOwner();

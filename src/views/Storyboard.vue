@@ -4,6 +4,7 @@ import TicketServices from "../services/TicketServices.js";
 import BoardStatusesServices from "../services/BoardStatusesServices.js";
 import Ticket from "../components/Ticket.vue";
 import TicketModal from "../components/TicketModal.vue";
+import projectServices from "../services/projectServices.js";
 
 const props = defineProps(['activeProject', 'projects']);
 const emit = defineEmits(['select-project']);
@@ -11,6 +12,7 @@ const emit = defineEmits(['select-project']);
 const currentSprint = ref(null);
 const tickets = ref([]);
 const board_statuses = ref([]);
+const project_members = ref([]);
 
 const snackbar = ref({
   value: false,
@@ -22,15 +24,35 @@ const currentTicket = ref();
 const isAddTicket = ref(false);
 const isModalOpen = ref(false);
 
+function getNumberOfTicketPerBoardStatus(statusId) {
+  const numberOfTicketsInStatus = tickets.value.filter(ticket => ticket.statusId === statusId);
+  return numberOfTicketsInStatus.length; 
+}
+
 function openModal(ticket, isAdd) {
   currentTicket.value = ticket;
   isAddTicket.value = isAdd;
   isModalOpen.value = true;
 }
 
+async function getProjectMembers(projectId) {
+  await projectServices.getProjectMembers(projectId)
+    .then((response) => {
+      project_members.value = response.data;
+    })
+    .catch((error) => {
+      console.log(error);
+      project_members.value = [];
+      snackbar.value.value = true;
+      snackbar.value.color = "error";
+      snackbar.value.text = error.response?.data?.message || "Error retrieving project members";       
+    });
+}
+
 watch(() => props.activeProject, async (newProject) => {
   if (newProject) {
     await getBoardStatusesForProject(newProject.id);
+    await getProjectMembers(newProject.id);
 
     if (newProject.projectSprints?.length > 0) {
       currentSprint.value = newProject.projectSprints[0].id;
@@ -139,11 +161,16 @@ function addTicket(status) {
         </v-select>
       </div>
 
-      <div class="grid-container ga-4 ">
+      <div class="grid-container ga-4">
         <v-card v-for="status in board_statuses" :key="status.id" class="status" @dragover.prevent @drop="onDrop(status)" style="max-height: 80vh;">
-          <h3 class="text-center my-2">{{ status.name }}</h3>
+          <div class="d-flex justify-space-between align-center mt-3 mb-5 px-5">
+            <h3>{{ status.name }}</h3>
+            <div class="d-flex justify-center align-center ticket-number-background">
+              {{ getNumberOfTicketPerBoardStatus(status.id) }}
+            </div>
+          </div>
           <div class="overflow-y-auto" style="max-height: 85%;">
-            <Ticket v-for="ticket in tickets.filter(ticket => ticket.statusId === status.id)" :key="ticket.id" @click="openModal(ticket, false)" :ticket="ticket" draggable="true" @dragstart="dragStart(ticket)" @dragEnd="dragEnd"/>
+            <Ticket v-for="ticket in tickets.filter(ticket => ticket.statusId === status.id)" :key="ticket.id" @click="openModal(ticket, false)" :ticket="ticket" draggable="true" @dragstart="dragStart(ticket)" @dragEnd="dragEnd(ticket)"/>
           </div>
           <v-btn class="d-block mx-auto my-4" @click="addTicket(status)">Add Ticket</v-btn>
         </v-card>
@@ -163,19 +190,36 @@ function addTicket(status) {
       </template>
     </v-snackbar>
 
-    <ticket-modal :is-open="isModalOpen" :ticket="currentTicket" :addTicket="isAddTicket" @modal-close="isModalOpen = false" @ticket-count-changed="getTicketsForSprint(currentSprint)" :snackbar="snackbar"/>
-
+    <ticket-modal  
+      :is-open="isModalOpen" 
+      :ticket="currentTicket" 
+      :addTicket="isAddTicket" 
+      :snackbar="snackbar"
+      :boardStatuses="board_statuses" 
+      :projectMembers="project_members" 
+      @modal-close="isModalOpen = false" 
+      @ticket-count-changed="getTicketsForSprint(currentSprint)" 
+      />
   </v-container>
 </template>
 
 <style scoped>
-  .status {
-    background-color: #FAF9F6;
-    display: flex;
-    flex-direction: column;
-  }
-  .grid-container {
-    display: grid;
-    grid-template-columns: repeat(v-bind('board_statuses.length'), 1fr); 
-  }
+.status {
+  background-color: #FAF9F6;
+  display: flex;
+  flex-direction: column;
+}
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(v-bind('board_statuses.length'), 1fr); 
+}
+
+.ticket-number-background {
+  background-color: #EFEFEC;
+  color: #80879A;
+  font-weight: bold;
+  border-radius: 50%;
+  width: 25px;
+  height: 25px;
+}
 </style>

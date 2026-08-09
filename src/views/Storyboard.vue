@@ -196,6 +196,7 @@ function addTicket(status) {
       :addTicket="isAddTicket" 
       :snackbar="snackbar"
       :boardStatuses="board_statuses" 
+      :activeProject="activeProject"
       :projectMembers="project_members" 
       @modal-close="isModalOpen = false" 
       @ticket-count-changed="getTicketsForSprint(currentSprint)" 

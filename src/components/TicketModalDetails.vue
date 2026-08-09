@@ -105,6 +105,7 @@ async function del(){
             item-title="name"
             item-value="id"
             variant="outlined"
+            density="comfortable"
             required
           ></v-select>
         </div>
@@ -116,6 +117,7 @@ async function del(){
             item-title="title"
             item-value="value"
             variant="outlined"
+            density="comfortable"
             required
           ></v-select>
         </div>
@@ -130,6 +132,7 @@ async function del(){
             item-title="title"
             item-value="value"
             variant="outlined"
+            density="comfortable"
             required
           ></v-select>
         </div>
@@ -139,6 +142,7 @@ async function del(){
             label="Story Points"
             :items="[0, 1, 2, 3, 5, 8, 13, 21, 34, 55]"
             variant="outlined"
+            density="comfortable"
             required
           ></v-select>
         </div>        
@@ -153,26 +157,49 @@ async function del(){
             item-title="label"
             item-value="userId"
             variant="outlined"
+            density="comfortable"
             clearable
           ></v-select>
         </div>     
+
+        <div style="width: 48%">
+          <v-select
+            v-model="props.ticket.repoId"
+            label="Repository"
+            :items="repos"
+            item-title="name"
+            item-value="id"
+            variant="outlined"
+            density="comfortable"
+            prepend-inner-icon="mdi-source-repository"
+            required
+          >
+          </v-select>
+        </div>     
       </div>
+
+      <v-container class="pt-0 mb-1">
+        <v-divider :thickness="2"></v-divider>
+      </v-container>
 
       <v-text-field
         v-model="props.ticket.githubBranchName"
         label="GitHub Branch Name"
+        variant="outlined"
+        density="comfortable"
+        prepend-inner-icon="mdi-source-branch"
+        :disabled="props.ticket.githubBranchCreatedAt"
       ></v-text-field>
 
       <div class="d-flex ga-4">
         <v-text-field
           v-model="props.ticket.githubPrURL"
           label="GitHub PrURL"
-          class="w-75"
-        ></v-text-field>
-        <v-text-field
-          v-model="props.ticket.githubIssueNumber"
-          label="GitHub Issue Number"
-          type="number"
+          variant="outlined"
+          density="comfortable"
+          prepend-inner-icon="mdi-source-pull"
+          :disabled="true"
+          :readonly="true"
         ></v-text-field>
       </div>
 

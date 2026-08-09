@@ -1,0 +1,6 @@
+# Local development only. Auto-loaded by a bare `docker compose up`, and
+# skipped whenever -f is passed explicitly — which is how staging avoids it.
+services:
+  frontend:
+    ports:
+      - "8080:80"

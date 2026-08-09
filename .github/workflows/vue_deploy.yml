@@ -1,6 +1,12 @@
 name: AWS DEPLOY TO STAGING
 
 on:
+  workflow_dispatch:
+    inputs:
+      replace_host_webserver:
+        description: "Stop and disable the host Apache/nginx so the container can bind port 80 (the container serves the same site and proxies /sprintboardapi itself)"
+        type: boolean
+        default: false
   pull_request:
     types: [closed]
     branches:
@@ -10,21 +16,113 @@ jobs:
   aws-deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
-          ref: dev
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - run: npm install
-      - run: npm run build
+          # A manual dispatch deploys the ref you dispatched, so a feature
+          # branch can be tested on staging without merging first. The
+          # PR-close trigger always deploys dev, the integration branch.
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.ref_name || 'dev' }}
 
+      # The source tree is shipped, not dist/: httpd.conf has to reach the box
+      # for the /sprintboardapi ProxyPass to exist at all. The multi-stage
+      # dockerfile runs the Vue build on the server.
       - name: Deploy to Server
         uses: easingthemes/ssh-deploy@v2.1.1
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
-          ARGS: "-rltgoDzvO --delete"
-          SOURCE: "dist/"
+          ARGS: "-rltgoDzvO --delete --exclude=node_modules --exclude=.git --exclude=dist"
+          SOURCE: "./"
           REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
           REMOTE_USER: ubuntu
-          TARGET: "/var/www/sprintboard-frontend"
+          TARGET: "nodeapps/sprintboard-system-frontend"
+
+      # The container publishes :80, so whatever is already bound there has to
+      # go. That is normally the host Apache serving the old /var/www deploy —
+      # the exact thing this container replaces, including the /sprintboardapi
+      # ProxyPass, which the image's httpd.conf provides over the compose
+      # network. Opt-in because it briefly takes the live site down.
+      - name: Free port 80 by retiring the host web server (opt-in)
+        if: ${{ inputs.replace_host_webserver }}
+        uses: JimCronqvist/action-ssh@master
+        with:
+          hosts: "ubuntu@${{ secrets.REMOTE_HOST }}"
+          privateKey: ${{ secrets.SERVER_SSH_KEY }}
+          debug: false
+          command: |
+            echo "----- listening on :80 before -----"
+            sudo ss -tlnp 'sport = :80' || true
+            for svc in apache2 httpd nginx; do
+              sudo systemctl disable --now "$svc" 2>/dev/null && echo "disabled $svc" || true
+            done
+            echo "----- listening on :80 after -----"
+            sudo ss -tlnp 'sport = :80' || true
+
+      - name: Bring up the stack
+        uses: JimCronqvist/action-ssh@master
+        with:
+          hosts: "ubuntu@${{ secrets.REMOTE_HOST }}"
+          privateKey: ${{ secrets.SERVER_SSH_KEY }}
+          debug: false
+          command: |
+            set -e
+            cd nodeapps/sprintboard-system-frontend
+
+            # get.docker.com may not publish a repo for Ubuntu 26.04's codename
+            # yet, so prefer distro packages. Normally the backend deploy has
+            # already installed Docker; this is the standalone path.
+            if ! (command -v docker >/dev/null && docker compose version >/dev/null 2>&1); then
+              sudo apt-get update
+              sudo apt-get install -y docker.io docker-compose-v2 \
+                || curl -fsSL https://get.docker.com | sudo sh
+              sudo systemctl enable --now docker
+            fi
+            docker --version
+
+            # Declared external in docker-compose.yaml and normally created by
+            # the backend stack. Created here too so frontend-first deploys do
+            # not fail — there is no SSH access to fix that by hand.
+            sudo docker network create jira_backend_network || true
+
+            COMPOSE="docker compose -f docker-compose.yaml -f docker-compose.prod.yaml"
+
+            # This image is built via a multi-stage dockerfile: the node:20-alpine
+            # build stage pulls node_modules and runs vite, and that whole stage
+            # is left dangling after every single run. Prune both sides of the
+            # build or the box accumulates a full build stage per deploy.
+            echo "----- docker usage before -----"
+            sudo docker system df
+            sudo docker builder prune -af || true
+            sudo docker image prune -af || true
+            sudo docker container prune -f || true
+            df -h /
+
+            # If this shows a host apache2/nginx, the container cannot bind :80.
+            # Re-dispatch with replace_host_webserver=true.
+            echo "----- listening on :80 -----"
+            sudo ss -tlnp 'sport = :80' || true
+
+            sudo $COMPOSE up -d --build
+
+            # NEVER add --volumes here: the backend stack's database volume
+            # lives on this same daemon.
+            sudo docker builder prune -af
+            sudo docker image prune -af
+            sudo docker container prune -f
+            echo "----- docker usage after -----"
+            sudo docker system df
+            df -h /
+
+      # With no SSH access, the Actions log is the only console onto the box.
+      - name: Diagnostics
+        if: always()
+        uses: JimCronqvist/action-ssh@master
+        with:
+          hosts: "ubuntu@${{ secrets.REMOTE_HOST }}"
+          privateKey: ${{ secrets.SERVER_SSH_KEY }}
+          debug: false
+          command: |
+            cd nodeapps/sprintboard-system-frontend
+            COMPOSE="docker compose -f docker-compose.yaml -f docker-compose.prod.yaml"
+            sudo $COMPOSE ps
+            echo "----- frontend logs -----"
+            sudo $COMPOSE logs --tail=50

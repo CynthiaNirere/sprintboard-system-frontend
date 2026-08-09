@@ -163,7 +163,7 @@ function addTicket(status) {
       </template>
     </v-snackbar>
 
-    <ticket-modal :is-open="isModalOpen" :ticket="currentTicket" :addTicket="isAddTicket" @modal-close="isModalOpen = false" @ticket-count-changed="getTicketsForSprint(currentSprint)" :snackbar="snackbar"/>
+    <ticket-modal :is-open="isModalOpen" :ticket="currentTicket" :activeProject="activeProject" :addTicket="isAddTicket" @modal-close="isModalOpen = false" @ticket-count-changed="getTicketsForSprint(currentSprint)" :snackbar="snackbar"/>
 
   </v-container>
 </template>

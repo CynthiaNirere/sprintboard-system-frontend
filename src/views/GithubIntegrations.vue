@@ -57,11 +57,22 @@ async function createRepo() {
     
 }
 
-function formatDate(d) {
-  if (!d) return "—";
-  const date = new Date(d);
-  return isNaN(date) ? "—" : date.toLocaleDateString();
+async function updateRepo(repo) {
+    console.log(repo);
+  await RepoServices.updateRepo( repo.id, repo)
+    .then(async (response) => {
+      snackbar.value.value = true;
+      snackbar.value.color = "green";
+      snackbar.value.text = "Repo updated successfully!";    
+    })
+    .catch((error) => {
+      console.log(error);
+      snackbar.value.value = true;
+      snackbar.value.color = "error";
+      snackbar.value.text = error.response.data.message || "Error updating repo"; 
+    });
 }
+
 
 function showError(error) {
   snackbar.value = {
@@ -106,14 +117,16 @@ function showError(error) {
                     variant="outlined"
                     density="comfortable"
                     autofocus
+                    @update:focused="(isFocused) => !isFocused && updateRepo(repo)"
                 />
                 <v-text-field
                     v-model="repo.developmentBranch"
-                    placeholder="development branch"
+                    placeholder="development branch name"
                     :rules="nameRules"
                     variant="outlined"
                     density="comfortable"
                     autofocus
+                    @update:focused="(isFocused) => !isFocused && updateRepo(repo)"
                     />
                 <v-text-field
                     v-model="repo.url"
@@ -122,6 +135,7 @@ function showError(error) {
                     variant="outlined"
                     density="comfortable"
                     autofocus
+                    @update:focused="(isFocused) => !isFocused && updateRepo(repo)"
                 />
                 <v-btn
                   icon="mdi-delete-outline"
@@ -169,6 +183,9 @@ function showError(error) {
                         autofocus
                     />
                 <p>Command to generate secret: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))" </p>
+                <p>Then add the key here and on the repository settings under webhooks. Be sure to change the content type to json, <br>
+                use http://ec2-204-236-253-93.compute-1.amazonaws.com/sprintboardapi/github/webhook as the url, then put the secret key,
+                select to not use SSL certificates, finally select Let me select individual events and check pull requests then save it. </p>
                 <v-text-field
                     v-model="newRepo.webhookSecret"
                     placeholder="repo webhook secret"

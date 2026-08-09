@@ -213,7 +213,8 @@ async function verifyGithubAccount(username) {
         @update:model-value="githubFieldStatus = { type: null, message: '' }"
       ></v-text-field>
 
-      <p class="text-body-2 font-weight-bold mb-1">GitHub account</p>
+      <p class="text-body-2 font-weight-bold mb-1">GitHub Token: create a classic token if you need access to repositories you don't own,<br>
+         but are a collaborator on.</p>
       <v-text-field v-if="!user.githubTokenUpdatedAt || newToken == true"
         v-model="user.githubToken"
         variant="outlined"

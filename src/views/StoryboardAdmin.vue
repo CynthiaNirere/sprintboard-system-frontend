@@ -124,6 +124,8 @@ async function onDrop(status){
   updateTicket(currentTicket);
 }
 
+function dragEnd() {}
+
 function addTicket(status){
   console.log(currentSprint.value);
   const newTicket = {
@@ -200,7 +202,6 @@ function addTicket(status){
       @modal-close="isModalOpen = false" 
       @ticket-count-changed="getTicketsForSprint(currentSprint)" 
       />
-
   </v-container>
 </template>
 

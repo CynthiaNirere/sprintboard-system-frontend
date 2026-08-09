@@ -38,15 +38,6 @@ const assigneeOptions = computed(() => {
   return [...formattedProjectMembers];
 });
 
-const testerOptions = computed(() => {
-  const formattedProjectMembers = props.projectMembers?.map(member => ({
-    label: `${member.firstName} ${member.lastName}`,
-    userId: member.id
-  })) || [];
-
-  return [...formattedProjectMembers];
-});
-
 async function submit(){
   if(props.addTicket){
     await TicketServices.addTicket(props.ticket)
@@ -154,7 +145,7 @@ async function del(){
       </div>
       
       <div class="d-flex justify-space-between ga-8 mt-2">
-        <div style="width: 50%">
+        <div style="width: 48%">
           <v-select
             v-model="props.ticket.assigneeId"
             label="Assignee"
@@ -164,18 +155,7 @@ async function del(){
             variant="outlined"
             clearable
           ></v-select>
-        </div>
-        <div style="width: 50%">
-          <v-select
-            v-model="props.ticket.testerId"
-            label="Tester"
-            :items="testerOptions"
-            item-title="label"
-            item-value="userId"
-            variant="outlined"
-            clearable
-          ></v-select>
-        </div>        
+        </div>     
       </div>
 
       <v-text-field

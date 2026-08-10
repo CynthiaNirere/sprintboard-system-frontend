@@ -47,6 +47,7 @@ watch(() => props.activeProject, async (newProject) => {
 // data this board displays, but through a completely separate component
 // with no other connection to this one.
 watch(() => eventBus.lastDataChange, async () => {
+  console.log("Storyboard: eventBus fired", { projectId: props.activeProject?.id, currentSprint: currentSprint.value });
   if (props.activeProject) {
     await getBoardStatusesForProject(props.activeProject.id);
     if (currentSprint.value) {

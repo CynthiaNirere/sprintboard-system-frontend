@@ -6,10 +6,12 @@ import TicketModalComments from "./TicketModalComments.vue";
 import TicketModalAttachments from "./TicketModalAttachments.vue";
 import TicketModalHistory from "./TicketModalHistory.vue";
 import TestServices from "../services/TestServices.js";
+import CommentServices from "../services/CommentServices.js";
 
 const props = defineProps(['activeTicket', 'addTicket', 'snackbar', 'boardStatuses', 'projectMembers', 'repos']);
-const emit = defineEmits(["modal-close", "ticket-count-changed", "test-count-changed"]);
+const emit = defineEmits(["modal-close", "ticket-count-changed", "test-count-changed", "comment-count-changed"]);
 const testCount = ref(0);
+const commentCount = ref(0);
 
 const tab = shallowRef('details');
 const tabs = [
@@ -43,6 +45,8 @@ const tabs = [
 onMounted(async () => {
   const getTestsForTicketResponse = await TestServices.getTestsForTicket(props.activeTicket?.id);
   testCount.value = getTestsForTicketResponse.data.length;
+  const getCommentsForTicketResponse = await CommentServices.getCommentsForTicket(props.activeTicket?.id);
+  commentCount.value = getCommentsForTicketResponse.data.length;
 });
 </script>
 
@@ -67,6 +71,10 @@ onMounted(async () => {
           {{ testCount }}
         </div>
 
+        <div v-if="item.text === 'Comments'" class="d-flex justify-center align-center comment-number-background">
+          {{ commentCount }}
+        </div>
+
       </v-tab>
     </template>
 
@@ -83,6 +91,7 @@ onMounted(async () => {
           @modal-close="emit('modal-close')"
           @ticket-count-changed="emit('ticket-count-changed')"
           @test-count-changed="testCount = $event"
+          @comment-count-changed="commentCount = $event"
         ></component>
       </v-tabs-window-item>
     </template>
@@ -96,7 +105,7 @@ onMounted(async () => {
   padding: 0 1rem;
 }
 
-.test-number-background {
+.test-number-background, .comment-number-background {
   background-color: #EFEFEC;
   color: #80879A;
   font-weight: bold;

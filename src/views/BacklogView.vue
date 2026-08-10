@@ -5,6 +5,7 @@ import Ticket from "../components/Ticket.vue";
 import TicketModal from "../components/TicketModal.vue";
 import projectServices from "../services/projectServices.js";
 import BoardStatusServices from "../services/BoardStatusesServices.js"
+import sprintServices from "../services/sprintServices.js"
 
 const props = defineProps(['activeProject', 'projects']);
 const projectMembers = ref([]);
@@ -40,11 +41,16 @@ async function loadProjectData() {
 }
 
 async function getSprints() {
-  sprints.value = props.activeProject.projectSprints || [];
-  for (const sprint of sprints.value) {
-    await loadSprintTickets(sprint.id);
-    if (sprint.isActive) expandedSprints.value[sprint.id] = true;
-  }
+  await sprintServices.getSprintsByProject(props.activeProject.id)
+    .then(async (response) => {
+      sprints.value = response.data || [];
+
+      for (const sprint of sprints.value) {
+        await loadSprintTickets(sprint.id);
+        if (sprint.isActive) expandedSprints.value[sprint.id] = true;
+      }
+    })
+    .catch((error) => showError(error));
 }
 
 async function loadSprintTickets(sprintId) {

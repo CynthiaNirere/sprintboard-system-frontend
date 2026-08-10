@@ -116,10 +116,10 @@ onMounted(async () => {
 <template>
   <div class="modal-content">
     <div v-if="comments.length > 0">
-      <div v-for="comment in comments" :key="comment.id" class="mb-4 pb-2" style="border-bottom: 1px solid #EFEFEF">
+      <div v-for="comment in comments" :key="comment.id" class="mb-3 pb-2" style="border-bottom: 1px solid #EFEFEF">
         <div class="d-flex justify-start ga-4">
           <div class="mt-1">
-            <v-avatar class="mx-auto text-center avatar-outline" color="#1740E3" size="x-small">
+            <v-avatar class="mx-auto text-center avatar-outline" color="#1740E3" size="x-small" style="letter-spacing:-7%;">
               <span style="font-size: 10px;">{{
                 `${getAuthorInitials(comment.userId)}`
               }}</span>
@@ -135,7 +135,7 @@ onMounted(async () => {
                 {{ formatLogTime(comment.createdAt) }}
               </div>
             </div>
-            <div id="userRole" class="mt-2" style="font-size: 15px;">
+            <div id="userRole" style="font-size: 15px;">
               {{ comment.content }}
             </div>
           </div>

@@ -8,13 +8,6 @@ const router = createRouter({
       name: "login",
       component: () => import("./views/Login.vue"),
     },
-   
-    {
-      path: "/profile",
-      name: "profile",
-      component: () => import("./views/Profile.vue"),
-    },
-     // ADMIN — global admins (user.globalRole === "ADMIN")
     {
       path: "/admin",
       name: "adminLayout",

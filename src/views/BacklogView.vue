@@ -3,9 +3,12 @@ import { ref, watch } from "vue";
 import TicketServices from "../services/TicketServices.js";
 import Ticket from "../components/Ticket.vue";
 import TicketModal from "../components/TicketModal.vue";
+import projectServices from "../services/projectServices.js";
+import BoardStatusServices from "../services/BoardStatusesServices.js"
 
 const props = defineProps(['activeProject', 'projects']);
-
+const projectMembers = ref([]);
+const boardStatuses = ref([]);
 const sprints = ref([]);
 const sprintsWithTickets = ref({});
 const expandedSprints = ref({});
@@ -32,6 +35,8 @@ async function loadProjectData() {
   expandedSprints.value = {};
   await getSprints();
   await getBacklog();
+  await getProjectMembers(props.activeProject.id);
+  await getBoardStatusesForProject(props.activeProject.id);
 }
 
 async function getSprints() {
@@ -52,6 +57,22 @@ async function getBacklog() {
   await TicketServices.getBacklog(props.activeProject.id)
     .then((response) => (backlog.value = response.data))
     .catch(showError);
+}
+
+async function getProjectMembers(projectId) {
+  await projectServices.getProjectMembers(projectId)
+    .then((response) => {
+      projectMembers.value = response.data;
+    })
+    .catch((error) => showError(error));
+}
+
+async function getBoardStatusesForProject(projectId) {
+  await BoardStatusServices.getBoardStatusesForProject(projectId)
+    .then((response) => {
+      boardStatuses.value = response.data;
+    })
+    .catch((error) => showError(error));
 }
 
 function toggleSprint(sprint) {
@@ -303,6 +324,9 @@ function showError(error) {
       :is-open="isModalOpen"
       :ticket="currentTicket"
       :addTicket="isAddTicket"
+      :activeProject="props.activeProject"
+      :projectMembers="projectMembers"
+      :boardStatuses="boardStatuses"
       @modal-close="isModalOpen = false"
       @ticket-count-changed="onTicketCountChanged"
       :snackbar="snackbar"

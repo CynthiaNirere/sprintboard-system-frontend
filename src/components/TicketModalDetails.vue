@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps, defineEmits, computed } from "vue";
+import { defineProps, defineEmits, computed, watch } from "vue";
 import TicketServices from "../services/TicketServices";
 
 const emit = defineEmits(["modal-close", "ticket-count-changed"]);
@@ -91,6 +91,12 @@ async function del(){
   emit('ticket-count-changed');
   emit('modal-close');
 }
+
+watch(() => props.ticket?.sprintId, (newSprintId) => {
+  if (!newSprintId) {
+    props.ticket.statusId = null;
+  }
+}, { immediate: true });
 </script>
 
 <template>
@@ -100,12 +106,13 @@ async function del(){
         <div style="width: 50%">
           <v-select
             v-model="props.ticket.statusId"
-            label="Status"
+            :label="!props.ticket.sprintId ? 'Must assign to sprint first to select status' : 'Status'"
             :items="props.boardStatuses"
             item-title="name"
             item-value="id"
             variant="outlined"
             density="comfortable"
+            :disabled="!props.ticket.sprintId"
             required
           ></v-select>
         </div>

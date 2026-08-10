@@ -10,11 +10,10 @@ const props = defineProps({
   ticket: Object,
   addTicket: Boolean,
   snackbar: Object,
-  activeProject: Object
+  activeProject: Object,
   boardStatuses: Object,
   projectMembers: Object,
-  activeProject: Object
-  projectMembers: Object
+
 });
 
 const emit = defineEmits(["modal-close", "ticket-count-changed"]);

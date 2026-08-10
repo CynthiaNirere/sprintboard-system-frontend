@@ -176,7 +176,7 @@ onMounted(async () => {
 
     <v-btn
       variant="flat"
-      class="mt-3 text-none"
+      class="text-none"
       style="color: white; background-color: #80162B; border-radius: 10px; height: 2.8rem; width: 14%;"
       @click="addNewComment()"
     >

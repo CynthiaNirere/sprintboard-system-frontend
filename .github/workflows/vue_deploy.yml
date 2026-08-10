@@ -2,11 +2,6 @@ name: AWS DEPLOY TO STAGING
 
 on:
   workflow_dispatch:
-    inputs:
-      replace_host_webserver:
-        description: "Stop and disable the host Apache/nginx so the container can bind port 80 (the container serves the same site and proxies /sprintboardapi itself)"
-        type: boolean
-        default: false
   pull_request:
     types: [closed]
     branches:
@@ -35,27 +30,6 @@ jobs:
           REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
           REMOTE_USER: ubuntu
           TARGET: "nodeapps/sprintboard-system-frontend"
-
-      # The container publishes :80, so whatever is already bound there has to
-      # go. That is normally the host Apache serving the old /var/www deploy —
-      # the exact thing this container replaces, including the /sprintboardapi
-      # ProxyPass, which the image's httpd.conf provides over the compose
-      # network. Opt-in because it briefly takes the live site down.
-      - name: Free port 80 by retiring the host web server (opt-in)
-        if: ${{ inputs.replace_host_webserver }}
-        uses: JimCronqvist/action-ssh@master
-        with:
-          hosts: "ubuntu@${{ secrets.REMOTE_HOST }}"
-          privateKey: ${{ secrets.SERVER_SSH_KEY }}
-          debug: false
-          command: |
-            echo "----- listening on :80 before -----"
-            sudo ss -tlnp 'sport = :80' || true
-            for svc in apache2 httpd nginx; do
-              sudo systemctl disable --now "$svc" 2>/dev/null && echo "disabled $svc" || true
-            done
-            echo "----- listening on :80 after -----"
-            sudo ss -tlnp 'sport = :80' || true
 
       - name: Bring up the stack
         uses: JimCronqvist/action-ssh@master
@@ -112,17 +86,3 @@ jobs:
             sudo docker system df
             df -h /
 
-      # With no SSH access, the Actions log is the only console onto the box.
-      - name: Diagnostics
-        if: always()
-        uses: JimCronqvist/action-ssh@master
-        with:
-          hosts: "ubuntu@${{ secrets.REMOTE_HOST }}"
-          privateKey: ${{ secrets.SERVER_SSH_KEY }}
-          debug: false
-          command: |
-            cd nodeapps/sprintboard-system-frontend
-            COMPOSE="docker compose -f docker-compose.yaml -f docker-compose.prod.yaml"
-            sudo $COMPOSE ps
-            echo "----- frontend logs -----"
-            sudo $COMPOSE logs --tail=50

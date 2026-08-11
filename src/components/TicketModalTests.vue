@@ -185,6 +185,7 @@ onMounted(async () => {
           v-model="newTest.title"
           variant="outlined"
           density="compact"
+          placeholder="e.g. User can reset password via email"
         ></v-text-field>
 
         <div class="input-labels">Description</div>

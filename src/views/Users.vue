@@ -381,7 +381,7 @@ function closeSnackBar() {
         They can change their display name later from their own Profile.
       </p>
       
-      <v-card class="rounded-lg border-thin mb-6" variant="flat">
+      <v-card id="add-user-fields" class="rounded-lg border-thin mb-6" variant="flat">
         <v-form ref="form">
           <div class="d-flex align-center justify-space-between ga-4 px-6">
             <v-text-field

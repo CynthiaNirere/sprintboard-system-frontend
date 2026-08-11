@@ -154,8 +154,6 @@ test.describe('SprintBoard E2E Tests', () => {
     await page.getByText('Feature').click();
     await page.locator('.d-flex.justify-space-between.ga-8.mt-2 > div > .v-input > .v-input__control > .v-field > .v-field__field > .v-field__input').first().click();
     await page.getByText('Low').click();
-    await page.locator('div:nth-child(3) > div > .v-input > .v-input__control > .v-field > .v-field__field > .v-field__input').first().click();
-    await page.getByRole('option').first().click();
     await page.getByLabel('Description').fill('This ticket was generated automatically by our Playwright E2E suite!');
 
     // Scroll down and click Submit
@@ -182,8 +180,6 @@ test.describe('SprintBoard E2E Tests', () => {
     await page.getByText('Bug').click();
     await page.locator('.d-flex.justify-space-between.ga-8.mt-2 > div > .v-input > .v-input__control > .v-field > .v-field__field > .v-field__input').first().click();
     await page.getByText('High').click();
-    await page.locator('div:nth-child(3) > div > .v-input > .v-input__control > .v-field > .v-field__field > .v-field__input').first().click();
-    await page.getByRole('option').first().click();
     await page.getByLabel('Description').fill('This ticket was generated automatically by our Playwright E2E suite!');
 
     await submitButton.scrollIntoViewIfNeeded(); 
@@ -197,8 +193,6 @@ test.describe('SprintBoard E2E Tests', () => {
     await page.getByRole('button', { name: "Add Test" }).click();
     await page.getByPlaceholder("e.g. User can reset password via email").fill('My E2E Test Title');
     await page.getByPlaceholder('Flexible — write in in Given/When/Then style').fill('Given I am a user...');
-    await page.locator('.v-card > .v-input.v-input--horizontal.v-input--center-affix.v-input--density-compact.v-theme--OCTheme.v-locale--is-ltr.v-text-field.v-select > .v-input__control > .v-field > .v-field__field > .v-field__input').click();
-    await page.getByRole('option').first().click();
     await page.getByRole('button', { name: 'Submit' }).click();
 
     await expect(page.getByText("My E2E Test Title").first()).toBeVisible();

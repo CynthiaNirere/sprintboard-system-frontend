@@ -97,14 +97,12 @@ function formatLogTime(loggedTime) {
   }
 }
 
-function getAuthorFullName(userId) {
-  const member = props.projectMembers?.find(member => member.id === userId);
-  return member ? `${member.firstName} ${member.lastName}` : "Unknown User";
+function getAuthorFullName(comment) {
+  return comment.user ? `${comment.user.firstName} ${comment.user.lastName}` : "Unknown User";
 }
 
-function getAuthorInitials(userId) {
-  const member = props.projectMembers?.find(member => member.id === userId);
-  return member ? `${member.firstName.charAt(0)} ${member.lastName.charAt(0)}` : "U";
+function getAuthorInitials(comment) {
+  return comment.user ? `${comment.user.firstName.charAt(0)} ${comment.user.lastName.charAt(0)}` : "U";
 }
 
 onMounted(async () => {
@@ -121,7 +119,7 @@ onMounted(async () => {
           <div class="mt-1">
             <v-avatar class="mx-auto text-center avatar-outline" color="#1740E3" size="x-small" style="letter-spacing:-7%;">
               <span style="font-size: 10px;">{{
-                `${getAuthorInitials(comment.userId)}`
+                `${getAuthorInitials(comment)}`
               }}</span>
             </v-avatar>
           </div>
@@ -129,7 +127,7 @@ onMounted(async () => {
           <div class="d-flex flex-column">
             <div class="d-flex align-center ga-3">
               <div class="font-weight-bold">
-                {{ getAuthorFullName(comment.userId) }}
+                {{ getAuthorFullName(comment) }}
               </div>
               <div style="font-size: 12px; opacity: 0.8;">
                 {{ formatLogTime(comment.createdAt) }}

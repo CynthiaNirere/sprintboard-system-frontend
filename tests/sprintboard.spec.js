@@ -3,7 +3,6 @@ import { test, expect } from '@playwright/test';
 // SEED DATA THIS SUITE DEPENDS ON — confirm these exist in whatever DB this
 // runs against:
 //   - A ticket titled exactly "Demo Ticket for Automation" in the backlog (Test 2)
-//   - A user matching "me myself" as an assignable option (Test 5)
 //   - A user with email "me@gmail.com" to add to a project (Test 5)
 
 test.describe('SprintBoard E2E Tests', () => {
@@ -156,7 +155,7 @@ test.describe('SprintBoard E2E Tests', () => {
     await page.locator('.d-flex.justify-space-between.ga-8.mt-2 > div > .v-input > .v-input__control > .v-field > .v-field__field > .v-field__input').first().click();
     await page.getByText('Low').click();
     await page.locator('div:nth-child(3) > div > .v-input > .v-input__control > .v-field > .v-field__field > .v-field__input').first().click();
-    await page.getByRole('option', { name: 'me myself' }).click();
+    await page.getByRole('option').first().click();
     await page.getByLabel('Description').fill('This ticket was generated automatically by our Playwright E2E suite!');
 
     // Scroll down and click Submit
@@ -184,7 +183,7 @@ test.describe('SprintBoard E2E Tests', () => {
     await page.locator('.d-flex.justify-space-between.ga-8.mt-2 > div > .v-input > .v-input__control > .v-field > .v-field__field > .v-field__input').first().click();
     await page.getByText('High').click();
     await page.locator('div:nth-child(3) > div > .v-input > .v-input__control > .v-field > .v-field__field > .v-field__input').first().click();
-    await page.getByRole('option', { name: 'me myself' }).click();
+    await page.getByRole('option').first().click();
     await page.getByLabel('Description').fill('This ticket was generated automatically by our Playwright E2E suite!');
 
     await submitButton.scrollIntoViewIfNeeded(); 

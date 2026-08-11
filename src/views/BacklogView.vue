@@ -4,13 +4,9 @@ import TicketServices from "../services/TicketServices.js";
 import Ticket from "../components/Ticket.vue";
 import TicketModal from "../components/TicketModal.vue";
 import { eventBus } from "../services/eventBus.js";
-import projectServices from "../services/projectServices.js";
-import BoardStatusServices from "../services/BoardStatusesServices.js"
-import sprintServices from "../services/sprintServices.js"
 
 const props = defineProps(['activeProject', 'projects']);
-const projectMembers = ref([]);
-const boardStatuses = ref([]);
+
 const sprints = ref([]);
 const sprintsWithTickets = ref({});
 const expandedSprints = ref({});
@@ -46,21 +42,14 @@ async function loadProjectData() {
   expandedSprints.value = {};
   await getSprints();
   await getBacklog();
-  await getProjectMembers(props.activeProject.id);
-  await getBoardStatusesForProject(props.activeProject.id);
 }
 
 async function getSprints() {
-  await sprintServices.getSprintsByProject(props.activeProject.id)
-    .then(async (response) => {
-      sprints.value = response.data || [];
-
-      for (const sprint of sprints.value) {
-        await loadSprintTickets(sprint.id);
-        if (sprint.isActive) expandedSprints.value[sprint.id] = true;
-      }
-    })
-    .catch((error) => showError(error));
+  sprints.value = props.activeProject.projectSprints || [];
+  for (const sprint of sprints.value) {
+    await loadSprintTickets(sprint.id);
+    if (sprint.isActive) expandedSprints.value[sprint.id] = true;
+  }
 }
 
 async function loadSprintTickets(sprintId) {
@@ -73,22 +62,6 @@ async function getBacklog() {
   await TicketServices.getBacklog(props.activeProject.id)
     .then((response) => (backlog.value = response.data))
     .catch(showError);
-}
-
-async function getProjectMembers(projectId) {
-  await projectServices.getProjectMembers(projectId)
-    .then((response) => {
-      projectMembers.value = response.data;
-    })
-    .catch((error) => showError(error));
-}
-
-async function getBoardStatusesForProject(projectId) {
-  await BoardStatusServices.getBoardStatusesForProject(projectId)
-    .then((response) => {
-      boardStatuses.value = response.data;
-    })
-    .catch((error) => showError(error));
 }
 
 function toggleSprint(sprint) {
@@ -141,10 +114,22 @@ function openModal(ticket, isAdd) {
 }
 
 function addToBacklog() {
+  // defaults to the project's first board status by columnOrder — TicketModal's
+  // own form has no status field, so this has to be pre-filled, same as Board.vue does
+  const statuses = [...(props.activeProject.projectBoardStatuses || [])].sort(
+    (a, b) => a.columnOrder - b.columnOrder
+  );
+  if (statuses.length === 0) {
+    snackbar.value = {
+      value: true,
+      color: "error",
+      text: "This project has no board statuses set up yet — add one before creating tickets.",
+    };
+    return;
+  }
   const newTicket = {
     projectId: props.activeProject.id,
-    statusId: null,
-    sprintId: null
+    statusId: statuses[0].id,
   };
   openModal(newTicket, true);
 }
@@ -180,9 +165,11 @@ async function deleteTicket() {
 }
 
 function parseLocalDate(dateString) {
-  const dateOnly = dateString.split("T")[0];
-  const [year, month, day] = dateOnly.split("-");
-  return new Date(Number(year), Number(month) - 1, Number(day));
+  const dateOnly = dateString?.split("T")[0];
+  if (dateOnly) {
+    const [year, month, day] = dateOnly.split("-");
+    return new Date(Number(year), Number(month) - 1, Number(day));
+  }
 }
 
 function isSprintActive(sprint) {
@@ -197,9 +184,8 @@ function sprintDuration(sprint) {
 }
 
 function formatDate(d) {
-  if (!d) return "—";
-  const date = new Date(d);
-  return isNaN(date) ? "—" : date.toLocaleDateString();
+  const date = parseLocalDate(d);
+  return date ? date.toLocaleDateString() : "—";
 }
 
 function showError(error) {
@@ -353,9 +339,6 @@ function showError(error) {
       :is-open="isModalOpen"
       :ticket="currentTicket"
       :addTicket="isAddTicket"
-      :activeProject="props.activeProject"
-      :projectMembers="projectMembers"
-      :boardStatuses="boardStatuses"
       @modal-close="isModalOpen = false"
       @ticket-count-changed="onTicketCountChanged"
       :snackbar="snackbar"

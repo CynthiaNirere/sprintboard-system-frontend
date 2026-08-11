@@ -1,5 +1,6 @@
 <script setup>
-import { defineProps, defineEmits, ref , watch} from "vue";
+import { defineProps, onMounted, defineEmits, ref, toRaw, watch} from "vue";
+import TicketServices from "../services/TicketServices";
 import GithubRepositoryServices from "../services/GithubRepositoryServices";
 import {onClickOutside} from '@vueuse/core'
 import TicketModalHeader from "./TicketModalHeader.vue";
@@ -10,10 +11,9 @@ const props = defineProps({
   ticket: Object,
   addTicket: Boolean,
   snackbar: Object,
-  activeProject: Object,
   boardStatuses: Object,
   projectMembers: Object,
-
+  activeProject: Object
 });
 
 const emit = defineEmits(["modal-close", "ticket-count-changed"]);
@@ -106,91 +106,6 @@ async function del(){
 
 <template>
   <div v-if="isOpen" class="modal-mask">
-    <div class="modal-wrapper">
-      <div class="modal-container" ref="target">
-        <v-form>
-        <div class="modal-header">
-        </div>
-        <div class="">
-            <v-text-field
-            v-model="ticket.title"
-            label="title"
-            required
-          ></v-text-field>
-          <v-textarea 
-            v-model="ticket.description"
-            label="description"
-            required
-          ></v-textarea >
-          <div class="d-flex ga-4">
-
-            <v-select
-              v-model="ticket.type"
-              label="type"
-              required
-              :items="['FEATURE', 'ENHANCEMENT', 'BUG']"
-            ></v-select>
-            <v-select
-              v-model="ticket.priority"
-              label="priority"
-              :items="['LOW', 'MEDIUM', 'HIGH']"
-              required
-            ></v-select>
-            <v-select
-              v-model="ticket.storyPoints"
-              label="story points"
-              :items="[0, 1, 2, 3, 5, 8, 13, 21, 34, 55]"
-              required
-            ></v-select>
-          </div>
-          <v-select
-              v-model="ticket.repoId"
-              label="repo"
-              :items="repos"
-              item-title="name"
-              item-value="id"
-              required
-            ></v-select>
-          <v-text-field
-            v-model="ticket.githubBranchName"
-            :disabled="ticket.githubBranchCreatedAt"
-            label="github branch name"
-          ></v-text-field>
-          <div class="d-flex ga-4">
-            <v-text-field
-              v-model="ticket.githubPrURL"
-              label="github PrURL"
-              class="w-75"
-              :disabled="true"
-               :readonly="true"
-            ></v-text-field>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <slot name="footer">
-            <div class="d-flex">
-              <v-btn
-                v-if="addTicket"
-                class="d-block ma-auto"
-                @click.stop="emit('modal-close')"
-              >
-                Cancel
-              </v-btn>
-              <v-btn
-                v-else
-                class="d-block ma-auto"
-                color="primary"
-                @click.stop="del()"
-              >
-                delete
-              </v-btn>
-              <v-btn class="d-block ma-auto" @click.stop="submit()">Submit</v-btn>
-            </div>
-          </slot>
-        </div>
-      </v-form>
-      </div>
-    </div>
     <v-container fluid class="fill-height">
       <v-row justify="center">
         <v-card class="modal-container" ref="target">

@@ -4,6 +4,7 @@ import TicketServices from "../services/TicketServices.js";
 import BoardStatusesServices from "../services/BoardStatusesServices.js";
 import Ticket from "../components/Ticket.vue";
 import TicketModal from "../components/TicketModal.vue";
+import { eventBus } from "../services/eventBus.js";
 import projectServices from "../services/projectServices.js";
 
 const props = defineProps(['activeProject', 'projects']);
@@ -63,6 +64,19 @@ watch(() => props.activeProject, async (newProject) => {
     }
   }
 }, { immediate: true });
+
+// Refetch when the chatbot changes something — it operates on the same
+// data this board displays, but through a completely separate component
+// with no other connection to this one.
+watch(() => eventBus.lastDataChange, async () => {
+  console.log("Storyboard: eventBus fired", { projectId: props.activeProject?.id, currentSprint: currentSprint.value });
+  if (props.activeProject) {
+    await getBoardStatusesForProject(props.activeProject.id);
+    if (currentSprint.value) {
+      await getTicketsForSprint(currentSprint.value);
+    }
+  }
+});
 
 async function getTicketsForSprint(sprintId) {
   await TicketServices.getTicketsForSprint(sprintId)
@@ -146,19 +160,12 @@ function addTicket(status) {
           @update:model-value="getTicketsForSprint"
           placeholder="Select a sprint"
           no-data-text="No sprints found"
-        >
-        </v-select>
-        <v-select
-          :model-value="props.activeProject"
-          label="Project"
-          :items="props.projects"
-          item-title="name"
-          return-object
-          @update:model-value="setProject"
-          placeholder="Select a project"
-          no-data-text="No projects found"
-        >
-        </v-select>
+          class="mx-5 mt-2 flex-grow-0"
+          bg-color="#DEE6FA"
+          rounded="lg"
+          density="compact"
+          variant="outlined"
+        />
       </div>
 
       <div class="grid-container ga-4">

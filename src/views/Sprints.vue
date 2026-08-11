@@ -7,6 +7,7 @@ import BoardStatusesServices from "../services/BoardStatusesServices.js";
 import RetroServices from "../services/retroServices.js"
 import projectServices from "../services/projectServices.js"
 import retro from "../components/retro.vue"
+import { eventBus } from "../services/eventBus.js";
 
 const router = useRouter();
 const sprints = ref([]);
@@ -44,6 +45,7 @@ const currentRetro = ref({});
 watch(() => props.activeProject, async (newProject) => {
   if (newProject) {    
     isProjectAdmin.value = false;
+    console.log("Active Project Data:", newProject);
     await getSprints();
 
     const getProjectMembersResponse = await projectServices.getProjectMembers(props.activeProject?.id);
@@ -57,6 +59,15 @@ watch(() => props.activeProject, async (newProject) => {
     }
   }
 }, { immediate: true});
+
+// Refetch when the chatbot changes something — it operates on the same
+// data this page displays, but through a completely separate component
+// with no other connection to this one.
+watch(() => eventBus.lastDataChange, async () => {
+  if (props.activeProject) {
+    await getSprints();
+  }
+});
 
 async function getSprints() {
    try {

@@ -40,4 +40,7 @@ export default {
   removeFromSprint(ticketId) {
     return apiClient.put("ticket/" + ticketId + "/unassign", {});
   },
+  getHistoryForTicket(ticketId){
+    return apiClient.get("ticket/" + ticketId + "/history");
+  }
 };

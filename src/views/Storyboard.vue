@@ -4,6 +4,7 @@ import TicketServices from "../services/TicketServices.js";
 import BoardStatusesServices from "../services/BoardStatusesServices.js";
 import Ticket from "../components/Ticket.vue";
 import TicketModal from "../components/TicketModal.vue";
+import { eventBus } from "../services/eventBus.js";
 import projectServices from "../services/projectServices.js";
 
 const props = defineProps(['activeProject', 'projects']);
@@ -63,6 +64,19 @@ watch(() => props.activeProject, async (newProject) => {
     }
   }
 }, { immediate: true });
+
+// Refetch when the chatbot changes something — it operates on the same
+// data this board displays, but through a completely separate component
+// with no other connection to this one.
+watch(() => eventBus.lastDataChange, async () => {
+  console.log("Storyboard: eventBus fired", { projectId: props.activeProject?.id, currentSprint: currentSprint.value });
+  if (props.activeProject) {
+    await getBoardStatusesForProject(props.activeProject.id);
+    if (currentSprint.value) {
+      await getTicketsForSprint(currentSprint.value);
+    }
+  }
+});
 
 async function getTicketsForSprint(sprintId) {
   await TicketServices.getTicketsForSprint(sprintId)

@@ -142,7 +142,7 @@ function addTicket(status){
   <v-container fluid>
     <div id="body">
       <div class="d-flex ga-4">
-        
+
         <v-select
           v-if="props.activeProject?.projectSprints"
           v-model="currentSprint"
@@ -153,17 +153,11 @@ function addTicket(status){
           @update:model-value="getTicketsForSprint"
           placeholder="Select a sprint"
           no-data-text="No sprints found"
-        >
-        </v-select>
-        <v-select
-          :model-value="props.activeProject"
-          label="Project"
-          :items="props.projects"
-          item-title="name"
-          return-object
-          @update:model-value="setProject"
-          placeholder="Select a project"
-          no-data-text="No projects found"
+          class="mx-5 mt-2 flex-grow-0"
+          bg-color="#DEE6FA"
+          rounded="lg"
+          density="compact"
+          variant="outlined"
         >
         </v-select>
       </div>
